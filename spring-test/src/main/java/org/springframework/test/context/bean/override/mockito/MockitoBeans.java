@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2024 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,18 @@
 package org.springframework.test.context.bean.override.mockito;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+
+import org.mockito.Mockito;
 
 /**
  * Beans created using Mockito.
  *
  * @author Andy Wilkinson
+ * @author Sam Brannen
  * @since 6.2
  */
-class MockitoBeans implements Iterable<Object> {
+class MockitoBeans {
 
 	private final List<Object> beans = new ArrayList<>();
 
@@ -35,9 +37,18 @@ class MockitoBeans implements Iterable<Object> {
 		this.beans.add(bean);
 	}
 
-	@Override
-	public Iterator<Object> iterator() {
-		return this.beans.iterator();
+	/**
+	 * Reset all Mockito beans configured with the supplied {@link MockReset} strategy.
+	 * <p>No mocks will be reset if the supplied strategy is {@link MockReset#NONE}.
+	 */
+	void resetAll(MockReset reset) {
+		if (reset != MockReset.NONE) {
+			for (Object bean : this.beans) {
+				if (reset == MockReset.get(bean)) {
+					Mockito.reset(bean);
+				}
+			}
+		}
 	}
 
 }

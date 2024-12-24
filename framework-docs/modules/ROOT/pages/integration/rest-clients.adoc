@@ -28,7 +28,7 @@ The following sample shows how to create a default `RestClient`, and how to buil
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim",role="primary"]
+[source,java,indent=0,subs="verbatim"]
 ----
 RestClient defaultClient = RestClient.create();
 
@@ -38,6 +38,7 @@ RestClient customClient = RestClient.builder()
   .baseUrl("https://example.com")
   .defaultUriVariables(Map.of("variable", "foo"))
   .defaultHeader("My-Header", "Foo")
+  .defaultCookie("My-Cookie", "Bar")
   .requestInterceptor(myCustomInterceptor)
   .requestInitializer(myCustomInitializer)
   .build();
@@ -45,7 +46,7 @@ RestClient customClient = RestClient.builder()
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim"]
 ----
 val defaultClient = RestClient.create()
 
@@ -55,6 +56,7 @@ val customClient = RestClient.builder()
   .baseUrl("https://example.com")
   .defaultUriVariables(mapOf("variable" to "foo"))
   .defaultHeader("My-Header", "Foo")
+  .defaultCookie("My-Cookie", "Bar")
   .requestInterceptor(myCustomInterceptor)
   .requestInitializer(myCustomInitializer)
   .build()
@@ -77,7 +79,7 @@ The following example configures a GET request to `https://example.com/orders/42
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 int id = 42;
 restClient.get()
@@ -87,7 +89,7 @@ restClient.get()
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 val id = 42
 restClient.get()
@@ -125,7 +127,7 @@ This sample shows how `RestClient` can be used to perform a simple `GET` request
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 String result = restClient.get() <1>
   .uri("https://example.com") <2>
@@ -142,7 +144,7 @@ System.out.println(result); <5>
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 val result= restClient.get() <1>
   .uri("https://example.com") <2>
@@ -164,7 +166,7 @@ Access to the response status code and headers is provided through `ResponseEnti
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 ResponseEntity<String> result = restClient.get() <1>
   .uri("https://example.com") <1>
@@ -181,7 +183,7 @@ System.out.println("Contents: " + result.getBody()); <3>
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 val result = restClient.get() <1>
   .uri("https://example.com") <1>
@@ -204,7 +206,7 @@ Note the usage of URI variables in this sample and that the `Accept` header is s
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 int id = ...;
 Pet pet = restClient.get()
@@ -219,7 +221,7 @@ Pet pet = restClient.get()
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 val id = ...
 val pet = restClient.get()
@@ -239,7 +241,7 @@ In the next sample, `RestClient` is used to perform a POST request that contains
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 Pet pet = ... <1>
 ResponseEntity<Void> response = restClient.post() <2>
@@ -257,7 +259,7 @@ ResponseEntity<Void> response = restClient.post() <2>
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 val pet: Pet = ... <1>
 val response = restClient.post() <2>
@@ -283,7 +285,7 @@ This behavior can be overridden using `onStatus`.
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 String result = restClient.get() <1>
   .uri("https://example.com/this-url-does-not-exist") <1>
@@ -299,7 +301,7 @@ String result = restClient.get() <1>
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 val result = restClient.get() <1>
   .uri("https://example.com/this-url-does-not-exist") <1>
@@ -322,7 +324,7 @@ Status handlers are not applied when use `exchange()`, because the exchange func
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 Pet result = restClient.get()
   .uri("https://petclinic.example.com/pets/{id}", id)
@@ -343,7 +345,7 @@ Pet result = restClient.get()
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 val result = restClient.get()
   .uri("https://petclinic.example.com/pets/{id}", id)
@@ -433,7 +435,7 @@ If no request factory is specified when the `RestClient` was built, it will use 
 Otherwise, if the `java.net.http` module is loaded, it will use Java's `HttpClient`.
 Finally, it will resort to the simple default.
 
-TIP: Note that the `SimpleClientHttpRequestFactory` may raise an exception when accessing the status of a response that represents an error (e.g. 401).
+TIP: Note that the `SimpleClientHttpRequestFactory` may raise an exception when accessing the status of a response that represents an error (for example, 401).
 If this is an issue, use any of the alternative request factories.
 
 [[rest-webclient]]
@@ -966,7 +968,7 @@ method parameters:
 
 | `@RequestPart`
 | Add a request part, which may be a String (form field), `Resource` (file part),
-  Object (entity to be encoded, e.g. as JSON), `HttpEntity` (part content and headers),
+  Object (entity to be encoded, for example, as JSON), `HttpEntity` (part content and headers),
   a Spring `Part`, or Reactive Streams `Publisher` of any of the above.
 
 | `MultipartFile`

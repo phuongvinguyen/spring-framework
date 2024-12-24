@@ -48,6 +48,7 @@ import static org.mockito.Mockito.mock;
  * @author Eddú Meléndez
  * @author Rob Winch
  * @author Brian Clozel
+ * @author Sebastien Deleuze
  */
 class ForwardedHeaderFilterTests {
 
@@ -443,6 +444,15 @@ class ForwardedHeaderFilterTests {
 		}
 
 		@Test
+		void shouldRemoveSingleTrailingSlash() throws Exception {
+			request.addHeader(X_FORWARDED_PREFIX, "/prefix,/");
+			request.setRequestURI("/mvc-showcase");
+
+			HttpServletRequest actual = filterAndGetWrappedRequest();
+			assertThat(actual.getRequestURL().toString()).isEqualTo("http://localhost/prefix/mvc-showcase");
+		}
+
+		@Test
 		void requestURLNewStringBuffer() throws Exception {
 			request.addHeader(X_FORWARDED_PREFIX, "/prefix/");
 			request.setRequestURI("/mvc-showcase");
@@ -639,7 +649,7 @@ class ForwardedHeaderFilterTests {
 
 			String location = "//other.info/parent/../foo/bar";
 			String redirectedUrl = sendRedirect(location);
-			assertThat(redirectedUrl).isEqualTo(("https://other.info/foo/bar"));
+			assertThat(redirectedUrl).isEqualTo(("https:" + location));
 		}
 
 		@Test

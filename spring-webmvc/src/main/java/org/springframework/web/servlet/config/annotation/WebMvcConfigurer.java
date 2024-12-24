@@ -18,11 +18,12 @@ package org.springframework.web.servlet.config.annotation;
 
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.format.Formatter;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.lang.Nullable;
 import org.springframework.validation.MessageCodesResolver;
 import org.springframework.validation.Validator;
 import org.springframework.web.ErrorResponse;
@@ -124,7 +125,7 @@ public interface WebMvcConfigurer {
 	/**
 	 * Configure simple automated controllers pre-configured with the response
 	 * status code and/or a view to render the response body. This is useful in
-	 * cases where there is no need for custom controller logic -- e.g. render a
+	 * cases where there is no need for custom controller logic -- for example, render a
 	 * home page, perform simple site URL redirects, return a 404 status with
 	 * HTML content, a 204 with no content, and more.
 	 * @see ViewControllerRegistry
@@ -224,7 +225,7 @@ public interface WebMvcConfigurer {
 
 	/**
 	 * Add to the list of {@link ErrorResponse.Interceptor}'s to apply when
-	 * rendering an RFC 7807 {@link org.springframework.http.ProblemDetail}
+	 * rendering an RFC 9457 {@link org.springframework.http.ProblemDetail}
 	 * error response.
 	 * @param interceptors the interceptors to use
 	 * @since 6.2
@@ -238,8 +239,7 @@ public interface WebMvcConfigurer {
 	 * {@link org.springframework.validation.beanvalidation.OptionalValidatorFactoryBean}.
 	 * Leave the return value as {@code null} to keep the default.
 	 */
-	@Nullable
-	default Validator getValidator() {
+	default @Nullable Validator getValidator() {
 		return null;
 	}
 
@@ -248,8 +248,7 @@ public interface WebMvcConfigurer {
 	 * from data binding and validation error codes. Leave the return value as
 	 * {@code null} to keep the default.
 	 */
-	@Nullable
-	default MessageCodesResolver getMessageCodesResolver() {
+	default @Nullable MessageCodesResolver getMessageCodesResolver() {
 		return null;
 	}
 

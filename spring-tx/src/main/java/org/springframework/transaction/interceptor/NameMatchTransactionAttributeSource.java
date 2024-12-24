@@ -25,10 +25,10 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.EmbeddedValueResolverAware;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.PatternMatchUtils;
@@ -56,13 +56,12 @@ public class NameMatchTransactionAttributeSource
 	/** Keys are method names; values are TransactionAttributes. */
 	private final Map<String, TransactionAttribute> nameMap = new HashMap<>();
 
-	@Nullable
-	private StringValueResolver embeddedValueResolver;
+	private @Nullable StringValueResolver embeddedValueResolver;
 
 
 	/**
 	 * Set a name/attribute map, consisting of method names
-	 * (e.g. "myMethod") and {@link TransactionAttribute} instances.
+	 * (for example, "myMethod") and {@link TransactionAttribute} instances.
 	 * @see #setProperties
 	 * @see TransactionAttribute
 	 */
@@ -123,8 +122,7 @@ public class NameMatchTransactionAttributeSource
 
 
 	@Override
-	@Nullable
-	public TransactionAttribute getTransactionAttribute(Method method, @Nullable Class<?> targetClass) {
+	public @Nullable TransactionAttribute getTransactionAttribute(Method method, @Nullable Class<?> targetClass) {
 		if (!ClassUtils.isUserLevelMethod(method)) {
 			return null;
 		}

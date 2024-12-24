@@ -16,6 +16,7 @@
 
 package org.springframework.web.service.invoker;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 
 import org.springframework.core.MethodParameter;
@@ -25,7 +26,6 @@ import org.springframework.core.ReactiveAdapterRegistry;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.codec.multipart.Part;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -40,7 +40,7 @@ import org.springframework.web.multipart.MultipartFile;
  * <li>String -- form field
  * <li>{@link org.springframework.core.io.Resource Resource} -- file part
  * <li>{@link MultipartFile} -- uploaded file
- * <li>Object -- content to be encoded (e.g. to JSON)
+ * <li>Object -- content to be encoded (for example, to JSON)
  * <li>{@link HttpEntity} -- part content and headers although generally it's
  * easier to add headers through the returned builder
  * <li>{@link Part} -- a part from a server request
@@ -56,8 +56,7 @@ public class RequestPartArgumentResolver extends AbstractNamedValueArgumentResol
 			ClassUtils.isPresent("reactor.core.publisher.Mono", RequestPartArgumentResolver.class.getClassLoader());
 
 
-	@Nullable
-	private final ReactiveAdapterRegistry reactiveAdapterRegistry;
+	private final @Nullable ReactiveAdapterRegistry reactiveAdapterRegistry;
 
 
 	/**
@@ -78,8 +77,7 @@ public class RequestPartArgumentResolver extends AbstractNamedValueArgumentResol
 
 
 	@Override
-	@Nullable
-	protected NamedValueInfo createNamedValueInfo(MethodParameter parameter) {
+	protected @Nullable NamedValueInfo createNamedValueInfo(MethodParameter parameter) {
 		RequestPart annot = parameter.getParameterAnnotation(RequestPart.class);
 		boolean isMultiPartFile = parameter.nestedIfOptional().getNestedParameterType().equals(MultipartFile.class);
 		String label = (isMultiPartFile ? "MultipartFile" : "request part");

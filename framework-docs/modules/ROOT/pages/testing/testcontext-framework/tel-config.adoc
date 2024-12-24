@@ -10,6 +10,7 @@ by default, exactly in the following order:
   annotation for "`before`" modes.
 * `ApplicationEventsTestExecutionListener`: Provides support for
   xref:testing/testcontext-framework/application-events.adoc[`ApplicationEvents`].
+* `BeanOverrideTestExecutionListener`: Provides support for xref:testing/testcontext-framework/bean-overriding.adoc[] .
 * `DependencyInjectionTestExecutionListener`: Provides dependency injection for the test
   instance.
 * `MicrometerObservationRegistryTestExecutionListener`: Provides support for
@@ -24,6 +25,7 @@ by default, exactly in the following order:
   annotation.
 * `EventPublishingTestExecutionListener`: Publishes test execution events to the test's
   `ApplicationContext` (see xref:testing/testcontext-framework/test-execution-events.adoc[Test Execution Events]).
+* `MockitoResetTestExecutionListener`: Resets mocks as configured by `@MockitoBean` or `@MockitoSpyBean`.
 
 [[testcontext-tel-config-registering-tels]]
 == Registering `TestExecutionListener` Implementations
@@ -45,7 +47,7 @@ following.
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	// Switch to default listeners
 	@TestExecutionListeners(
@@ -59,7 +61,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	// Switch to default listeners
 	@TestExecutionListeners(
@@ -116,7 +118,7 @@ listeners. The following listing demonstrates this style of configuration:
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	@ContextConfiguration
 	@TestExecutionListeners({
@@ -135,7 +137,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	@ContextConfiguration
 	@TestExecutionListeners(
@@ -183,7 +185,7 @@ be replaced with the following:
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	@ContextConfiguration
 	@TestExecutionListeners(
@@ -197,7 +199,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	@ContextConfiguration
 	@TestExecutionListeners(

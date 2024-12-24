@@ -25,28 +25,49 @@ import java.lang.annotation.Target;
 import org.mockito.Answers;
 import org.mockito.MockSettings;
 
+import org.springframework.core.annotation.AliasFor;
 import org.springframework.test.context.bean.override.BeanOverride;
 
 /**
- * Mark a field to trigger a bean override using a Mockito mock.
+ * {@code @MockitoBean} is an annotation that can be applied to a non-static field
+ * in a test class to override a bean in the test's
+ * {@link org.springframework.context.ApplicationContext ApplicationContext}
+ * using a Mockito mock.
  *
- * <p>If no explicit {@link #name()} is specified, a target bean definition is
- * selected according to the class of the annotated field, and there must be
- * exactly one such candidate definition in the context. A {@code @Qualifier}
- * annotation can be used to help disambiguate.
- * If a {@link #name()} is specified, either the definition exists in the
- * application context and is replaced, or it doesn't and a new one is added to
- * the context.
+ * <p>By default, the bean to mock is inferred from the type of the annotated
+ * field. If multiple candidates exist, a {@code @Qualifier} annotation can be
+ * used to help disambiguate. In the absence of a {@code @Qualifier} annotation,
+ * the name of the annotated field will be used as a fallback qualifier.
+ * Alternatively, you can explicitly specify a bean name to mock by setting the
+ * {@link #value() value} or {@link #name() name} attribute.
+ *
+ * <p>A bean will be created if a corresponding bean does not exist. However, if
+ * you would like for the test to fail when a corresponding bean does not exist,
+ * you can set the {@link #enforceOverride() enforceOverride} attribute to {@code true}
+ * &mdash; for example,  {@code @MockitoBean(enforceOverride = true)}.
  *
  * <p>Dependencies that are known to the application context but are not beans
  * (such as those
- * {@link org.springframework.beans.factory.config.ConfigurableListableBeanFactory#registerResolvableDependency(Class, Object)
+ * {@linkplain org.springframework.beans.factory.config.ConfigurableListableBeanFactory#registerResolvableDependency(Class, Object)
  * registered directly}) will not be found, and a mocked bean will be added to
  * the context alongside the existing dependency.
  *
+ * <p><strong>NOTE</strong>: Only <em>singleton</em> beans can be mocked.
+ * Any attempt to mock a non-singleton bean will result in an exception. When
+ * mocking a bean created by a {@link org.springframework.beans.factory.FactoryBean
+ * FactoryBean}, the {@code FactoryBean} will be replaced with a singleton mock
+ * of the type of object created by the {@code FactoryBean}.
+ *
+ * <p>There are no restrictions on the visibility of a {@code @MockitoBean} field.
+ * Such fields can therefore be {@code public}, {@code protected}, package-private
+ * (default visibility), or {@code private} depending on the needs or coding
+ * practices of the project.
+ *
  * @author Simon Baslé
+ * @author Sam Brannen
  * @since 6.2
- * @see MockitoSpyBean
+ * @see org.springframework.test.context.bean.override.mockito.MockitoSpyBean @MockitoSpyBean
+ * @see org.springframework.test.context.bean.override.convention.TestBean @TestBean
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
@@ -55,15 +76,26 @@ import org.springframework.test.context.bean.override.BeanOverride;
 public @interface MockitoBean {
 
 	/**
-	 * The name of the bean to register or replace.
-	 * <p>If left unspecified, the bean to override is selected according to
-	 * the annotated field's type.
-	 * @return the name of the mocked bean
+	 * Alias for {@link #name()}.
+	 * <p>Intended to be used when no other attributes are needed &mdash; for
+	 * example, {@code @MockitoBean("customBeanName")}.
+	 * @see #name()
 	 */
+	@AliasFor("name")
+	String value() default "";
+
+	/**
+	 * Name of the bean to mock.
+	 * <p>If left unspecified, the bean to mock is selected according to the
+	 * annotated field's type, taking qualifiers into account if necessary. See
+	 * the {@linkplain MockitoBean class-level documentation} for details.
+	 * @see #value()
+	 */
+	@AliasFor("value")
 	String name() default "";
 
 	/**
-	 * Extra interfaces that should also be declared on the mock.
+	 * Extra interfaces that should also be declared by the mock.
 	 * <p>Defaults to none.
 	 * @return any extra interfaces
 	 * @see MockSettings#extraInterfaces(Class...)
@@ -71,7 +103,7 @@ public @interface MockitoBean {
 	Class<?>[] extraInterfaces() default {};
 
 	/**
-	 * The {@link Answers} type to use on the mock.
+	 * The {@link Answers} type to use in the mock.
 	 * <p>Defaults to {@link Answers#RETURNS_DEFAULTS}.
 	 * @return the answer type
 	 */
@@ -92,5 +124,16 @@ public @interface MockitoBean {
 	 * @return the reset mode
 	 */
 	MockReset reset() default MockReset.AFTER;
+
+	/**
+	 * Whether to require the existence of the bean being mocked.
+	 * <p>Defaults to {@code false} which means that a mock will be created if a
+	 * corresponding bean does not exist.
+	 * <p>Set to {@code true} to cause an exception to be thrown if a corresponding
+	 * bean does not exist.
+	 * @see org.springframework.test.context.bean.override.BeanOverrideStrategy#REPLACE_OR_CREATE
+	 * @see org.springframework.test.context.bean.override.BeanOverrideStrategy#REPLACE
+	 */
+	boolean enforceOverride() default false;
 
 }

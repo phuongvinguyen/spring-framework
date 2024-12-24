@@ -16,12 +16,13 @@
 
 package org.springframework.beans.factory;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.FatalBeanException;
-import org.springframework.lang.Nullable;
 
 /**
  * Exception thrown when a BeanFactory encounters an invalid bean definition:
- * e.g. in case of incomplete or contradictory bean metadata.
+ * for example, in case of incomplete or contradictory bean metadata.
  *
  * @author Rod Johnson
  * @author Juergen Hoeller
@@ -30,11 +31,9 @@ import org.springframework.lang.Nullable;
 @SuppressWarnings("serial")
 public class BeanDefinitionStoreException extends FatalBeanException {
 
-	@Nullable
-	private final String resourceDescription;
+	private final @Nullable String resourceDescription;
 
-	@Nullable
-	private final String beanName;
+	private final @Nullable String beanName;
 
 
 	/**
@@ -113,16 +112,14 @@ public class BeanDefinitionStoreException extends FatalBeanException {
 	/**
 	 * Return the description of the resource that the bean definition came from, if available.
 	 */
-	@Nullable
-	public String getResourceDescription() {
+	public @Nullable String getResourceDescription() {
 		return this.resourceDescription;
 	}
 
 	/**
 	 * Return the name of the bean, if available.
 	 */
-	@Nullable
-	public String getBeanName() {
+	public @Nullable String getBeanName() {
 		return this.beanName;
 	}
 

@@ -33,6 +33,8 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.aot.generate.GeneratedMethods;
 import org.springframework.aot.generate.ValueCodeGenerator;
 import org.springframework.aot.generate.ValueCodeGenerator.Delegate;
@@ -55,7 +57,6 @@ import org.springframework.beans.factory.support.InstanceSupplier;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.javapoet.CodeBlock;
 import org.springframework.javapoet.CodeBlock.Builder;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
@@ -113,26 +114,34 @@ class BeanDefinitionPropertiesCodeGenerator {
 
 	CodeBlock generateCode(RootBeanDefinition beanDefinition) {
 		CodeBlock.Builder code = CodeBlock.builder();
-		addStatementForValue(code, beanDefinition, BeanDefinition::isPrimary,
-				"$L.setPrimary($L)");
-		addStatementForValue(code, beanDefinition, BeanDefinition::isFallback,
-				"$L.setFallback($L)");
 		addStatementForValue(code, beanDefinition, BeanDefinition::getScope,
 				this::hasScope, "$L.setScope($S)");
+		addStatementForValue(code, beanDefinition, AbstractBeanDefinition::isBackgroundInit,
+				"$L.setBackgroundInit($L)");
+		addStatementForValue(code, beanDefinition, AbstractBeanDefinition::getLazyInit,
+				"$L.setLazyInit($L)");
 		addStatementForValue(code, beanDefinition, BeanDefinition::getDependsOn,
 				this::hasDependsOn, "$L.setDependsOn($L)", this::toStringVarArgs);
 		addStatementForValue(code, beanDefinition, BeanDefinition::isAutowireCandidate,
 				"$L.setAutowireCandidate($L)");
-		addStatementForValue(code, beanDefinition, BeanDefinition::getRole,
-				this::hasRole, "$L.setRole($L)", this::toRole);
-		addStatementForValue(code, beanDefinition, AbstractBeanDefinition::getLazyInit,
-				"$L.setLazyInit($L)");
+		addStatementForValue(code, beanDefinition, AbstractBeanDefinition::isDefaultCandidate,
+				"$L.setDefaultCandidate($L)");
+		addStatementForValue(code, beanDefinition, BeanDefinition::isPrimary,
+				"$L.setPrimary($L)");
+		addStatementForValue(code, beanDefinition, BeanDefinition::isFallback,
+				"$L.setFallback($L)");
 		addStatementForValue(code, beanDefinition, AbstractBeanDefinition::isSynthetic,
 				"$L.setSynthetic($L)");
+		addStatementForValue(code, beanDefinition, BeanDefinition::getRole,
+				this::hasRole, "$L.setRole($L)", this::toRole);
 		addInitDestroyMethods(code, beanDefinition, beanDefinition.getInitMethodNames(),
 				"$L.setInitMethodNames($L)");
 		addInitDestroyMethods(code, beanDefinition, beanDefinition.getDestroyMethodNames(),
 				"$L.setDestroyMethodNames($L)");
+		if (beanDefinition.getFactoryBeanName() != null) {
+			addStatementForValue(code, beanDefinition, BeanDefinition::getFactoryBeanName,
+					"$L.setFactoryBeanName(\"$L\")");
+		}
 		addConstructorArgumentValues(code, beanDefinition);
 		addPropertyValues(code, beanDefinition);
 		addAttributes(code, beanDefinition);
@@ -141,7 +150,8 @@ class BeanDefinitionPropertiesCodeGenerator {
 	}
 
 	private void addInitDestroyMethods(Builder code, AbstractBeanDefinition beanDefinition,
-			@Nullable String[] methodNames, String format) {
+			String @Nullable [] methodNames, String format) {
+
 		// For Publisher-based destroy methods
 		this.hints.reflection().registerType(TypeReference.of("org.reactivestreams.Publisher"));
 		if (!ObjectUtils.isEmpty(methodNames)) {
@@ -210,7 +220,6 @@ class BeanDefinitionPropertiesCodeGenerator {
 				else if (valueHolder.getType() != null) {
 					code.addStatement("$L.getConstructorArgumentValues().addGenericArgumentValue($L, $S)",
 							BEAN_DEFINITION_VARIABLE, valueCode, valueHolder.getType());
-
 				}
 				else {
 					code.addStatement("$L.getConstructorArgumentValues().addGenericArgumentValue($L)",
@@ -224,7 +233,8 @@ class BeanDefinitionPropertiesCodeGenerator {
 		MutablePropertyValues propertyValues = beanDefinition.getPropertyValues();
 		if (!propertyValues.isEmpty()) {
 			Class<?> infrastructureType = getInfrastructureType(beanDefinition);
-			Map<String, Method> writeMethods = (infrastructureType != Object.class) ? getWriteMethods(infrastructureType) : Collections.emptyMap();
+			Map<String, Method> writeMethods = (infrastructureType != Object.class ?
+					getWriteMethods(infrastructureType) : Collections.emptyMap());
 			for (PropertyValue propertyValue : propertyValues) {
 				String name = propertyValue.getName();
 				CodeBlock valueCode = generateValue(name, propertyValue.getValue());
@@ -243,10 +253,10 @@ class BeanDefinitionPropertiesCodeGenerator {
 		// ReflectionUtils#findField searches recursively in the type hierarchy
 		Class<?> searchType = beanDefinition.getTargetType();
 		while (searchType != null && searchType != writeMethod.getDeclaringClass()) {
-			this.hints.reflection().registerType(searchType, MemberCategory.DECLARED_FIELDS);
+			this.hints.reflection().registerType(searchType, MemberCategory.INVOKE_DECLARED_FIELDS);
 			searchType = searchType.getSuperclass();
 		}
-		this.hints.reflection().registerType(writeMethod.getDeclaringClass(), MemberCategory.DECLARED_FIELDS);
+		this.hints.reflection().registerType(writeMethod.getDeclaringClass(), MemberCategory.INVOKE_DECLARED_FIELDS);
 	}
 
 	private void addQualifiers(CodeBlock.Builder code, RootBeanDefinition beanDefinition) {
@@ -266,8 +276,8 @@ class BeanDefinitionPropertiesCodeGenerator {
 	}
 
 	private CodeBlock generateValue(@Nullable String name, @Nullable Object value) {
+		PropertyNamesStack.push(name);
 		try {
-			PropertyNamesStack.push(name);
 			return this.valueCodeGenerator.generateCode(value);
 		}
 		finally {
@@ -308,8 +318,7 @@ class BeanDefinitionPropertiesCodeGenerator {
 	}
 
 	private boolean hasScope(String defaultValue, String actualValue) {
-		return StringUtils.hasText(actualValue) &&
-				!ConfigurableBeanFactory.SCOPE_SINGLETON.equals(actualValue);
+		return (StringUtils.hasText(actualValue) && !ConfigurableBeanFactory.SCOPE_SINGLETON.equals(actualValue));
 	}
 
 	private boolean hasDependsOn(String[] defaultValue, String[] actualValue) {
@@ -335,8 +344,7 @@ class BeanDefinitionPropertiesCodeGenerator {
 	}
 
 	private <B extends BeanDefinition, T> void addStatementForValue(
-			CodeBlock.Builder code, BeanDefinition beanDefinition,
-			Function<B, T> getter, String format) {
+			CodeBlock.Builder code, BeanDefinition beanDefinition, Function<B, T> getter, String format) {
 
 		addStatementForValue(code, beanDefinition, getter,
 				(defaultValue, actualValue) -> !Objects.equals(defaultValue, actualValue), format);
@@ -351,9 +359,8 @@ class BeanDefinitionPropertiesCodeGenerator {
 
 	@SuppressWarnings("unchecked")
 	private <B extends BeanDefinition, T> void addStatementForValue(
-			CodeBlock.Builder code, BeanDefinition beanDefinition,
-			Function<B, T> getter, BiPredicate<T, T> filter, String format,
-			Function<T, Object> formatter) {
+			CodeBlock.Builder code, BeanDefinition beanDefinition, Function<B, T> getter,
+			BiPredicate<T, T> filter, String format, Function<T, Object> formatter) {
 
 		T defaultValue = getter.apply((B) DEFAULT_BEAN_DEFINITION);
 		T actualValue = getter.apply((B) beanDefinition);
@@ -363,9 +370,8 @@ class BeanDefinitionPropertiesCodeGenerator {
 	}
 
 	/**
-	 * Cast the specified {@code valueCode} to the specified {@code castType} if
-	 * the {@code castNecessary} is {@code true}. Otherwise return the valueCode
-	 * as is.
+	 * Cast the specified {@code valueCode} to the specified {@code castType} if the
+	 * {@code castNecessary} is {@code true}. Otherwise, return the valueCode as-is.
 	 * @param castNecessary whether a cast is necessary
 	 * @param castType the type to cast to
 	 * @param valueCode the code for the value
@@ -390,8 +396,7 @@ class BeanDefinitionPropertiesCodeGenerator {
 			threadLocal.get().pop();
 		}
 
-		@Nullable
-		static String peek() {
+		static @Nullable String peek() {
 			String value = threadLocal.get().peek();
 			return ("".equals(value) ? null : value);
 		}

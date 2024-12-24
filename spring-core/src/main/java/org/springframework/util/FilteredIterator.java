@@ -20,11 +20,13 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.function.Predicate;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
- * Iterator that filters out values that do not match a predicate.
- * This type is used by {@link CompositeMap}.
+ * {@link Iterator} that filters out values that do not match a predicate.
+ *
+ * <p>This type is used by {@link CompositeMap}.
+ *
  * @author Arjen Poutsma
  * @since 6.2
  * @param <E> the type of elements returned by this iterator
@@ -35,16 +37,14 @@ final class FilteredIterator<E> implements Iterator<E> {
 
 	private final Predicate<E> filter;
 
-	@Nullable
-	private E next;
+	private @Nullable E next;
 
-	private boolean nextSet;
+	private boolean hasNext;
 
 
 	public FilteredIterator(Iterator<E> delegate, Predicate<E> filter) {
 		Assert.notNull(delegate, "Delegate must not be null");
 		Assert.notNull(filter, "Filter must not be null");
-
 		this.delegate = delegate;
 		this.filter = filter;
 	}
@@ -52,22 +52,15 @@ final class FilteredIterator<E> implements Iterator<E> {
 
 	@Override
 	public boolean hasNext() {
-		if (this.nextSet) {
-			return true;
-		}
-		else {
-			return setNext();
-		}
+		return (this.hasNext || setNext());
 	}
 
 	@Override
 	public E next() {
-		if (!this.nextSet) {
-			if (!setNext()) {
-				throw new NoSuchElementException();
-			}
+		if (!this.hasNext && !setNext()) {
+			throw new NoSuchElementException();
 		}
-		this.nextSet = false;
+		this.hasNext = false;
 		Assert.state(this.next != null, "Next should not be null");
 		return this.next;
 	}
@@ -77,10 +70,11 @@ final class FilteredIterator<E> implements Iterator<E> {
 			E next = this.delegate.next();
 			if (this.filter.test(next)) {
 				this.next = next;
-				this.nextSet = true;
+				this.hasNext = true;
 				return true;
 			}
 		}
 		return false;
 	}
+
 }

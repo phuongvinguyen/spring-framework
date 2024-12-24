@@ -22,8 +22,8 @@ import jakarta.transaction.TransactionManager;
 import jakarta.transaction.UserTransaction;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
@@ -48,8 +48,7 @@ public class SpringJtaSynchronizationAdapter implements Synchronization {
 
 	private final TransactionSynchronization springSynchronization;
 
-	@Nullable
-	private UserTransaction jtaTransaction;
+	private @Nullable UserTransaction jtaTransaction;
 
 	private boolean beforeCompletionCalled = false;
 
@@ -122,7 +121,7 @@ public class SpringJtaSynchronizationAdapter implements Synchronization {
 		finally {
 			// Process Spring's beforeCompletion early, in order to avoid issues
 			// with strict JTA implementations that issue warnings when doing JDBC
-			// operations after transaction completion (e.g. Connection.getWarnings).
+			// operations after transaction completion (for example, Connection.getWarnings).
 			this.beforeCompletionCalled = true;
 			this.springSynchronization.beforeCompletion();
 		}

@@ -18,8 +18,8 @@ package org.springframework.web.servlet;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.web.method.HandlerMethod;
 
 /**
@@ -61,7 +61,7 @@ import org.springframework.web.method.HandlerMethod;
  * common handler code and authorization checks. On the other hand, a Filter
  * is well-suited for request content and view content handling, like multipart
  * forms and GZIP compression. This typically shows when one needs to map the
- * filter to certain content types (e.g. images), or to all requests.
+ * filter to certain content types (for example, images), or to all requests.
  *
  * <p><strong>Note:</strong> Interceptors are not ideally suited as a security
  * layer due to the potential for a mismatch with annotated controller path matching.

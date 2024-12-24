@@ -17,12 +17,12 @@
 package org.springframework.test.context.bean.override.mockito;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Answers;
 
 import org.springframework.test.context.ContextCustomizer;
 import org.springframework.test.context.bean.override.BeanOverrideContextCustomizerTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Answers.RETURNS_MOCKS;
 
 /**
  * Tests that validate the behavior of {@link MockitoBean} and
@@ -34,50 +34,45 @@ class MockitoBeanContextCustomizerEqualityTests {
 
 	@Test
 	void contextCustomizerWithSameMockByNameInDifferentClassIsEqual() {
-		assertThat(createContextCustomizer(Case1ByName.class)).isEqualTo(createContextCustomizer(Case2ByName.class));
+		assertThat(customizerFor(Case1ByName.class)).isEqualTo(customizerFor(Case2ByName.class));
 	}
 
 	@Test
 	void contextCustomizerWithSameMockByTypeInDifferentClassIsEqual() {
-		assertThat(createContextCustomizer(Case1ByType.class)).isEqualTo(createContextCustomizer(Case2ByTypeSameFieldName.class));
+		assertThat(customizerFor(Case1ByType.class)).isEqualTo(customizerFor(Case2ByTypeSameFieldName.class));
 	}
 
 	@Test
 	void contextCustomizerWithSameMockByTypeAndDifferentFieldNamesAreNotEqual() {
-		assertThat(createContextCustomizer(Case1ByType.class)).isNotEqualTo(createContextCustomizer(Case2ByType.class));
+		assertThat(customizerFor(Case1ByType.class)).isNotEqualTo(customizerFor(Case2ByType.class));
 	}
 
 	@Test
 	void contextCustomizerWithSameSpyByNameInDifferentClassIsEqual() {
-		assertThat(createContextCustomizer(Case4ByName.class)).isEqualTo(createContextCustomizer(Case5ByName.class));
+		assertThat(customizerFor(Case4ByName.class)).isEqualTo(customizerFor(Case5ByName.class));
 	}
 
 	@Test
 	void contextCustomizerWithSameSpyByTypeInDifferentClassIsEqual() {
-		assertThat(createContextCustomizer(Case4ByType.class)).isEqualTo(createContextCustomizer(Case5ByTypeSameFieldName.class));
+		assertThat(customizerFor(Case4ByType.class)).isEqualTo(customizerFor(Case5ByTypeSameFieldName.class));
 	}
 
 	@Test
 	void contextCustomizerWithSameSpyByTypeAndDifferentFieldNamesAreNotEqual() {
-		assertThat(createContextCustomizer(Case4ByType.class)).isNotEqualTo(createContextCustomizer(Case5ByType.class));
+		assertThat(customizerFor(Case4ByType.class)).isNotEqualTo(customizerFor(Case5ByType.class));
 	}
 
 	@Test
 	void contextCustomizerWithSimilarMockButDifferentAnswersIsNotEqual() {
-		assertThat(createContextCustomizer(Case1ByType.class)).isNotEqualTo(createContextCustomizer(Case3.class));
-	}
-
-	@Test
-	void contextCustomizerWithSimilarSpyButDifferentProxyTargetClassFlagIsNotEqual() {
-		assertThat(createContextCustomizer(Case5ByType.class)).isNotEqualTo(createContextCustomizer(Case6.class));
+		assertThat(customizerFor(Case1ByType.class)).isNotEqualTo(customizerFor(Case3.class));
 	}
 
 	@Test
 	void contextCustomizerWithMockAndSpyAreNotEqual() {
-		assertThat(createContextCustomizer(Case1ByType.class)).isNotEqualTo(createContextCustomizer(Case4ByType.class));
+		assertThat(customizerFor(Case1ByType.class)).isNotEqualTo(customizerFor(Case4ByType.class));
 	}
 
-	private ContextCustomizer createContextCustomizer(Class<?> testClass) {
+	private ContextCustomizer customizerFor(Class<?> testClass) {
 		ContextCustomizer customizer = BeanOverrideContextCustomizerTestUtils.createContextCustomizer(testClass);
 		assertThat(customizer).isNotNull();
 		return customizer;
@@ -85,7 +80,7 @@ class MockitoBeanContextCustomizerEqualityTests {
 
 	static class Case1ByName {
 
-		@MockitoBean(name = "serviceBean")
+		@MockitoBean("serviceBean")
 		private String exampleService;
 
 	}
@@ -99,7 +94,7 @@ class MockitoBeanContextCustomizerEqualityTests {
 
 	static class Case2ByName {
 
-		@MockitoBean(name = "serviceBean")
+		@MockitoBean("serviceBean")
 		private String serviceToMock;
 
 	}
@@ -120,14 +115,14 @@ class MockitoBeanContextCustomizerEqualityTests {
 
 	static class Case3 {
 
-		@MockitoBean(answers = Answers.RETURNS_MOCKS)
+		@MockitoBean(answers = RETURNS_MOCKS)
 		private String exampleService;
 
 	}
 
 	static class Case4ByName {
 
-		@MockitoSpyBean(name = "serviceBean")
+		@MockitoSpyBean("serviceBean")
 		private String exampleService;
 
 	}
@@ -141,7 +136,7 @@ class MockitoBeanContextCustomizerEqualityTests {
 
 	static class Case5ByName {
 
-		@MockitoSpyBean(name = "serviceBean")
+		@MockitoSpyBean("serviceBean")
 		private String serviceToMock;
 
 	}
@@ -157,13 +152,6 @@ class MockitoBeanContextCustomizerEqualityTests {
 
 		@MockitoSpyBean
 		private String exampleService;
-
-	}
-
-	static class Case6 {
-
-		@MockitoSpyBean(proxyTargetAware = false)
-		private String serviceToMock;
 
 	}
 

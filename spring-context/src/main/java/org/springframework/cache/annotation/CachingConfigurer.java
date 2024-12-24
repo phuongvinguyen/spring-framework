@@ -16,11 +16,12 @@
 
 package org.springframework.cache.annotation;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.interceptor.CacheErrorHandler;
 import org.springframework.cache.interceptor.CacheResolver;
 import org.springframework.cache.interceptor.KeyGenerator;
-import org.springframework.lang.Nullable;
 
 /**
  * Interface to be implemented by @{@link org.springframework.context.annotation.Configuration
@@ -31,6 +32,10 @@ import org.springframework.lang.Nullable;
  * <p>See @{@link EnableCaching} for general examples and context; see
  * {@link #cacheManager()}, {@link #cacheResolver()}, {@link #keyGenerator()}, and
  * {@link #errorHandler()} for detailed instructions.
+ *
+ * <p><b>NOTE: A {@code CachingConfigurer} will get initialized early.</b>
+ * Do not inject common dependencies into autowired fields directly; instead, consider
+ * declaring a lazy {@link org.springframework.beans.factory.ObjectProvider} for those.
  *
  * @author Chris Beams
  * @author Stephane Nicoll
@@ -47,7 +52,7 @@ public interface CachingConfigurer {
 	 * {@link CacheResolver} directly.
 	 * <p>Implementations must explicitly declare
 	 * {@link org.springframework.context.annotation.Bean @Bean} so that
-	 * the cache manager participates in the lifecycle of the context, e.g.
+	 * the cache manager participates in the lifecycle of the context, for example,
 	 * <pre class="code">
 	 * &#064;Configuration
 	 * &#064;EnableCaching
@@ -62,8 +67,7 @@ public interface CachingConfigurer {
 	 * </pre>
 	 * See @{@link EnableCaching} for more complete examples.
 	 */
-	@Nullable
-	default CacheManager cacheManager() {
+	default @Nullable CacheManager cacheManager() {
 		return null;
 	}
 
@@ -75,7 +79,7 @@ public interface CachingConfigurer {
 	 * the cache manager is ignored.
 	 * <p>Implementations must explicitly declare
 	 * {@link org.springframework.context.annotation.Bean @Bean} so that
-	 * the cache resolver participates in the lifecycle of the context, e.g.
+	 * the cache resolver participates in the lifecycle of the context, for example,
 	 * <pre class="code">
 	 * &#064;Configuration
 	 * &#064;EnableCaching
@@ -90,8 +94,7 @@ public interface CachingConfigurer {
 	 * </pre>
 	 * See {@link EnableCaching} for more complete examples.
 	 */
-	@Nullable
-	default CacheResolver cacheResolver() {
+	default @Nullable CacheResolver cacheResolver() {
 		return null;
 	}
 
@@ -101,8 +104,7 @@ public interface CachingConfigurer {
 	 * is used.
 	 * See @{@link EnableCaching} for more complete examples.
 	 */
-	@Nullable
-	default KeyGenerator keyGenerator() {
+	default @Nullable KeyGenerator keyGenerator() {
 		return null;
 	}
 
@@ -112,8 +114,7 @@ public interface CachingConfigurer {
 	 * is used, which throws the exception back at the client.
 	 * See @{@link EnableCaching} for more complete examples.
 	 */
-	@Nullable
-	default CacheErrorHandler errorHandler() {
+	default @Nullable CacheErrorHandler errorHandler() {
 		return null;
 	}
 

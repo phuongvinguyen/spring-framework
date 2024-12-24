@@ -22,8 +22,7 @@ import java.util.Map;
 
 import io.micrometer.context.ThreadLocalAccessor;
 import jakarta.servlet.http.HttpServletRequest;
-
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Adapt {@link RequestContextHolder} to the {@link ThreadLocalAccessor} contract
@@ -48,8 +47,7 @@ public class RequestAttributesThreadLocalAccessor implements ThreadLocalAccessor
 	}
 
 	@Override
-	@Nullable
-	public RequestAttributes getValue() {
+	public @Nullable RequestAttributes getValue() {
 		RequestAttributes request = RequestContextHolder.getRequestAttributes();
 		if (request instanceof ServletRequestAttributes sra && !(sra instanceof SnapshotServletRequestAttributes)) {
 			request = new SnapshotServletRequestAttributes(sra);
@@ -70,10 +68,10 @@ public class RequestAttributesThreadLocalAccessor implements ThreadLocalAccessor
 
 	/**
 	 * ServletRequestAttributes that takes another instance, and makes a copy of the
-	 * request attributes at present to provides extended read access during async
+	 * request attributes at present to provide extended read access during async
 	 * handling when the DispatcherServlet has exited from the initial REQUEST dispatch
 	 * and marked the request {@link ServletRequestAttributes#requestCompleted()}.
-	 * <p>Note that beyond access to request attributes, here is no attempt to support
+	 * <p>Note that beyond access to request attributes, there is no attempt to support
 	 * setting or removing request attributes, nor to access session attributes after
 	 * the initial REQUEST dispatch has exited.
 	 */
@@ -101,9 +99,8 @@ public class RequestAttributesThreadLocalAccessor implements ThreadLocalAccessor
 
 		// Delegate methods that check isRequestActive()
 
-		@Nullable
 		@Override
-		public Object getAttribute(String name, int scope) {
+		public @Nullable Object getAttribute(String name, int scope) {
 			if (scope == RequestAttributes.SCOPE_REQUEST && !this.delegate.isRequestActive()) {
 				return this.attributeMap.get(name);
 			}

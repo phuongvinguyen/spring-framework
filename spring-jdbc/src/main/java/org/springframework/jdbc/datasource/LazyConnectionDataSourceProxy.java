@@ -29,8 +29,8 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -48,7 +48,7 @@ import org.springframework.util.Assert;
  * without fetching a Connection from the pool or communicating with the
  * database; this will be done lazily on first creation of a JDBC Statement.
  * As a bonus, this allows for taking the transaction-synchronized read-only
- * flag and/or isolation level into account in a routing DataSource (e.g.
+ * flag and/or isolation level into account in a routing DataSource (for example,
  * {@link org.springframework.jdbc.datasource.lookup.IsolationLevelDataSourceRouter}).
  *
  * <p><b>If you configure both a LazyConnectionDataSourceProxy and a
@@ -104,14 +104,11 @@ public class LazyConnectionDataSourceProxy extends DelegatingDataSource {
 
 	private static final Log logger = LogFactory.getLog(LazyConnectionDataSourceProxy.class);
 
-	@Nullable
-	private DataSource readOnlyDataSource;
+	private @Nullable DataSource readOnlyDataSource;
 
-	@Nullable
-	private volatile Boolean defaultAutoCommit;
+	private volatile @Nullable Boolean defaultAutoCommit;
 
-	@Nullable
-	private volatile Integer defaultTransactionIsolation;
+	private volatile @Nullable Integer defaultTransactionIsolation;
 
 
 	/**
@@ -184,7 +181,7 @@ public class LazyConnectionDataSourceProxy extends DelegatingDataSource {
 	/**
 	 * Set the default transaction isolation level to expose when no target Connection
 	 * has been fetched yet (when the actual JDBC Connection default is not known yet).
-	 * <p>This property accepts the int constant value (e.g. 8) as defined in the
+	 * <p>This property accepts the int constant value (for example, 8) as defined in the
 	 * {@link java.sql.Connection} interface; it is mainly intended for programmatic
 	 * use. Consider using the "defaultTransactionIsolationName" property for setting
 	 * the value by name (for example, {@code "TRANSACTION_SERIALIZABLE"}).
@@ -238,16 +235,14 @@ public class LazyConnectionDataSourceProxy extends DelegatingDataSource {
 	/**
 	 * Expose the default auto-commit value.
 	 */
-	@Nullable
-	protected Boolean defaultAutoCommit() {
+	protected @Nullable Boolean defaultAutoCommit() {
 		return this.defaultAutoCommit;
 	}
 
 	/**
 	 * Expose the default transaction isolation value.
 	 */
-	@Nullable
-	protected Integer defaultTransactionIsolation() {
+	protected @Nullable Integer defaultTransactionIsolation() {
 		return this.defaultTransactionIsolation;
 	}
 
@@ -295,17 +290,13 @@ public class LazyConnectionDataSourceProxy extends DelegatingDataSource {
 	 */
 	private class LazyConnectionInvocationHandler implements InvocationHandler {
 
-		@Nullable
-		private String username;
+		private @Nullable String username;
 
-		@Nullable
-		private String password;
+		private @Nullable String password;
 
-		@Nullable
-		private Boolean autoCommit;
+		private @Nullable Boolean autoCommit;
 
-		@Nullable
-		private Integer transactionIsolation;
+		private @Nullable Integer transactionIsolation;
 
 		private boolean readOnly = false;
 
@@ -313,8 +304,7 @@ public class LazyConnectionDataSourceProxy extends DelegatingDataSource {
 
 		private boolean closed = false;
 
-		@Nullable
-		private Connection target;
+		private @Nullable Connection target;
 
 		public LazyConnectionInvocationHandler() {
 			this.autoCommit = defaultAutoCommit();
@@ -328,8 +318,7 @@ public class LazyConnectionDataSourceProxy extends DelegatingDataSource {
 		}
 
 		@Override
-		@Nullable
-		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+		public @Nullable Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 			// Invocation on ConnectionProxy interface coming in...
 
 			switch (method.getName()) {

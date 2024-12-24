@@ -27,13 +27,13 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.groovy.util.Maps;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.support.DefaultFormattingConversionService;
-import org.springframework.lang.Nullable;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
@@ -72,6 +72,12 @@ class NamedValueArgumentResolverTests {
 	void dateTestValue() {
 		this.service.executeDate(LocalDate.of(2022, 9, 16));
 		assertTestValue("value", "2022-09-16");
+	}
+
+	@Test // gh-33794
+	void dateNullValue() {
+		this.service.executeDate(null);
+		assertTestValue("value");
 	}
 
 	@Test
@@ -182,7 +188,7 @@ class NamedValueArgumentResolverTests {
 		void executeString(@TestValue String value);
 
 		@GetExchange
-		void executeDate(@TestValue @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate value);
+		void executeDate(@Nullable @TestValue(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate value);
 
 		@GetExchange
 		void execute(@TestValue Object value);

@@ -23,10 +23,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
-import org.springframework.lang.Nullable;
 import org.springframework.transaction.NoTransactionException;
 import org.springframework.util.Assert;
 
@@ -39,7 +39,7 @@ import org.springframework.util.Assert;
  * to be removed before a new one can be set for the same key.
  * Supports a list of transaction synchronizations if synchronization is active.
  *
- * <p>Resource management code should check for context-bound resources, e.g.
+ * <p>Resource management code should check for context-bound resources, for example,
  * database connections, via {@code getResource}. Such code is normally not
  * supposed to bind resources to units of work, as this is the responsibility
  * of transaction managers. A further option is to lazily bind on first use if
@@ -58,7 +58,7 @@ import org.springframework.util.Assert;
  * doesn't support transaction synchronization.
  *
  * <p>Synchronization is for example used to always return the same resources within
- * a transaction, e.g. a database connection for any given connection factory.
+ * a transaction, for example, a database connection for any given connection factory.
  *
  * @author Mark Paluch
  * @author Juergen Hoeller
@@ -107,8 +107,7 @@ public class TransactionSynchronizationManager {
 	 * @return a value bound to the current context (usually the active
 	 * resource object), or {@code null} if none
 	 */
-	@Nullable
-	public Object getResource(Object key) {
+	public @Nullable Object getResource(Object key) {
 		Object actualKey = TransactionSynchronizationUtils.unwrapResourceIfNecessary(key);
 		return doGetResource(actualKey);
 	}
@@ -116,8 +115,7 @@ public class TransactionSynchronizationManager {
 	/**
 	 * Actually check the value of the resource that is bound for the given key.
 	 */
-	@Nullable
-	private Object doGetResource(Object actualKey) {
+	private @Nullable Object doGetResource(Object actualKey) {
 		return this.transactionContext.getResources().get(actualKey);
 	}
 
@@ -158,8 +156,7 @@ public class TransactionSynchronizationManager {
 	 * @param key the key to unbind (usually the resource factory)
 	 * @return the previously bound value, or {@code null} if none bound
 	 */
-	@Nullable
-	public Object unbindResourceIfPossible(Object key) {
+	public @Nullable Object unbindResourceIfPossible(Object key) {
 		Object actualKey = TransactionSynchronizationUtils.unwrapResourceIfNecessary(key);
 		return doUnbindResource(actualKey);
 	}
@@ -167,8 +164,7 @@ public class TransactionSynchronizationManager {
 	/**
 	 * Actually remove the value of the resource that is bound for the given key.
 	 */
-	@Nullable
-	private Object doUnbindResource(Object actualKey) {
+	private @Nullable Object doUnbindResource(Object actualKey) {
 		Map<Object, Object> map = this.transactionContext.getResources();
 		return map.remove(actualKey);
 	}
@@ -279,8 +275,7 @@ public class TransactionSynchronizationManager {
 	 * for example to optimize fetch strategies for specific named transactions.
 	 * @see org.springframework.transaction.TransactionDefinition#getName()
 	 */
-	@Nullable
-	public String getCurrentTransactionName() {
+	public @Nullable String getCurrentTransactionName() {
 		return this.transactionContext.getCurrentTransactionName();
 	}
 
@@ -339,8 +334,7 @@ public class TransactionSynchronizationManager {
 	 * @see org.springframework.transaction.TransactionDefinition#ISOLATION_SERIALIZABLE
 	 * @see org.springframework.transaction.TransactionDefinition#getIsolationLevel()
 	 */
-	@Nullable
-	public Integer getCurrentTransactionIsolationLevel() {
+	public @Nullable Integer getCurrentTransactionIsolationLevel() {
 		return this.transactionContext.getCurrentTransactionIsolationLevel();
 	}
 

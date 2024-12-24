@@ -18,6 +18,8 @@ package org.springframework.context.annotation;
 
 import java.lang.reflect.Constructor;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeanInstantiationException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.Aware;
@@ -30,12 +32,11 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * Common delegate code for the handling of parser strategies, e.g.
- * {@code TypeFilter}, {@code ImportSelector}, {@code ImportBeanDefinitionRegistrar}
+ * Common delegate code for the handling of parser strategies, for example,
+ * {@code TypeFilter}, {@code ImportSelector}, {@code ImportBeanDefinitionRegistrar}.
  *
  * @author Juergen Hoeller
  * @author Phillip Webb
@@ -98,8 +99,7 @@ abstract class ParserStrategyUtils {
 			return parameters;
 	}
 
-	@Nullable
-	private static Object resolveParameter(Class<?> parameterType,
+	private static @Nullable Object resolveParameter(Class<?> parameterType,
 			Environment environment, ResourceLoader resourceLoader,
 			BeanDefinitionRegistry registry, @Nullable ClassLoader classLoader) {
 

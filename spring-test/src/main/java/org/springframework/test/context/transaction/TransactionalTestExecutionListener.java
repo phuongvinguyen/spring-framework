@@ -25,12 +25,12 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.BeanFactoryAnnotationUtils;
 import org.springframework.core.annotation.AnnotatedElementUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.test.annotation.Commit;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.TestContext;
@@ -110,7 +110,7 @@ import org.springframework.util.StringUtils;
  * {@code ApplicationContext} for the test. In case there are multiple
  * instances of {@code PlatformTransactionManager} within the test's
  * {@code ApplicationContext}, a <em>qualifier</em> may be declared via
- * {@link Transactional @Transactional} (e.g., {@code @Transactional("myTxMgr")}
+ * {@link Transactional @Transactional} (for example, {@code @Transactional("myTxMgr")}
  * or {@code @Transactional(transactionManager = "myTxMgr")}, or
  * {@link org.springframework.transaction.annotation.TransactionManagementConfigurer
  * TransactionManagementConfigurer} can be implemented by an
@@ -155,8 +155,7 @@ public class TransactionalTestExecutionListener extends AbstractTestExecutionLis
 	protected final TransactionAttributeSource attributeSource = new AnnotationTransactionAttributeSource(false) {
 
 		@Override
-		@Nullable
-		protected TransactionAttribute findTransactionAttribute(Class<?> clazz) {
+		protected @Nullable TransactionAttribute findTransactionAttribute(Class<?> clazz) {
 			// @Transactional present in inheritance hierarchy?
 			TransactionAttribute result = super.findTransactionAttribute(clazz);
 			if (result != null) {
@@ -166,8 +165,7 @@ public class TransactionalTestExecutionListener extends AbstractTestExecutionLis
 			return findTransactionAttributeInEnclosingClassHierarchy(clazz);
 		}
 
-		@Nullable
-		private TransactionAttribute findTransactionAttributeInEnclosingClassHierarchy(Class<?> clazz) {
+		private @Nullable TransactionAttribute findTransactionAttributeInEnclosingClassHierarchy(Class<?> clazz) {
 			if (TestContextAnnotationUtils.searchEnclosingClass(clazz)) {
 				return findTransactionAttribute(clazz.getEnclosingClass());
 			}
@@ -361,8 +359,7 @@ public class TransactionalTestExecutionListener extends AbstractTestExecutionLis
 	 * @throws BeansException if an error occurs while retrieving the transaction manager
 	 * @see #getTransactionManager(TestContext)
 	 */
-	@Nullable
-	protected PlatformTransactionManager getTransactionManager(TestContext testContext, @Nullable String qualifier) {
+	protected @Nullable PlatformTransactionManager getTransactionManager(TestContext testContext, @Nullable String qualifier) {
 		// Look up by type and qualifier from @Transactional
 		if (StringUtils.hasText(qualifier)) {
 			try {
@@ -400,8 +397,7 @@ public class TransactionalTestExecutionListener extends AbstractTestExecutionLis
 	 * exists in the ApplicationContext
 	 * @see #getTransactionManager(TestContext, String)
 	 */
-	@Nullable
-	protected PlatformTransactionManager getTransactionManager(TestContext testContext) {
+	protected @Nullable PlatformTransactionManager getTransactionManager(TestContext testContext) {
 		return TestContextTransactionUtils.retrieveTransactionManager(testContext, null);
 	}
 

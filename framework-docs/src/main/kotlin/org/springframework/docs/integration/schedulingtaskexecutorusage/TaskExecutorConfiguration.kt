@@ -34,4 +34,11 @@ class TaskExecutorConfiguration {
 	@Bean
 	fun taskExecutorExample(taskExecutor: ThreadPoolTaskExecutor) = TaskExecutorExample(taskExecutor)
 	// end::snippet[]
+
+	// tag::decorator[]
+	@Bean
+	fun decoratedTaskExecutor() = ThreadPoolTaskExecutor().apply {
+		setTaskDecorator(LoggingTaskDecorator())
+	}
+	// end::decorator[]
 }

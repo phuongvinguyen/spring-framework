@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Mono;
 
@@ -65,15 +66,6 @@ public interface ServerResponse {
 	 * @return the status as an HttpStatusCode value
 	 */
 	HttpStatusCode statusCode();
-
-	/**
-	 * Return the status code of this response as integer.
-	 * @return the status as an integer
-	 * @since 5.2
-	 * @deprecated in favor of {@link #statusCode()}, for removal in 7.0
-	 */
-	@Deprecated(since = "6.0", forRemoval = true)
-	int rawStatusCode();
 
 	/**
 	 * Return the headers of this response.
@@ -243,7 +235,7 @@ public interface ServerResponse {
 		 * @return this builder
 		 * @see HttpHeaders#add(String, String)
 		 */
-		B header(String headerName, String... headerValues);
+		B header(String headerName, @Nullable String... headerValues);
 
 		/**
 		 * Manipulate this response's headers with the given consumer. The
@@ -339,7 +331,7 @@ public interface ServerResponse {
 		B cacheControl(CacheControl cacheControl);
 
 		/**
-		 * Configure one or more request header names (e.g. "Accept-Language") to
+		 * Configure one or more request header names (for example, "Accept-Language") to
 		 * add to the "Vary" response header to inform clients that the response is
 		 * subject to content negotiation and variances based on the value of the
 		 * given request headers. The configured request header names are added only

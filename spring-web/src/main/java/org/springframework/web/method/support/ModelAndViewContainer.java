@@ -20,8 +20,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.http.HttpStatusCode;
-import org.springframework.lang.Nullable;
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.support.BindingAwareModelMap;
@@ -51,18 +52,15 @@ public class ModelAndViewContainer {
 
 	private boolean ignoreDefaultModelOnRedirect = true;
 
-	@Nullable
-	private Object view;
+	private @Nullable Object view;
 
 	private final ModelMap defaultModel = new BindingAwareModelMap();
 
-	@Nullable
-	private ModelMap redirectModel;
+	private @Nullable ModelMap redirectModel;
 
 	private boolean redirectModelScenario = false;
 
-	@Nullable
-	private HttpStatusCode status;
+	private @Nullable HttpStatusCode status;
 
 	private final Set<String> noBinding = new HashSet<>(4);
 
@@ -104,8 +102,7 @@ public class ModelAndViewContainer {
 	 * Return the view name to be resolved by the DispatcherServlet via a
 	 * ViewResolver, or {@code null} if a View object is set.
 	 */
-	@Nullable
-	public String getViewName() {
+	public @Nullable String getViewName() {
 		return (this.view instanceof String viewName ? viewName : null);
 	}
 
@@ -121,8 +118,7 @@ public class ModelAndViewContainer {
 	 * Return the View object, or {@code null} if we are using a view name
 	 * to be resolved by the DispatcherServlet via a ViewResolver.
 	 */
-	@Nullable
-	public Object getView() {
+	public @Nullable Object getView() {
 		return this.view;
 	}
 
@@ -165,7 +161,7 @@ public class ModelAndViewContainer {
 	 * returns either the "default" model (template rendering) or the "redirect"
 	 * model (redirect URL preparation). Use of this method may be needed for
 	 * advanced cases when access to the "default" model is needed regardless,
-	 * e.g. to save model attributes specified via {@code @SessionAttributes}.
+	 * for example, to save model attributes specified via {@code @SessionAttributes}.
 	 * @return the default model (never {@code null})
 	 * @since 4.1.4
 	 */
@@ -184,7 +180,7 @@ public class ModelAndViewContainer {
 	}
 
 	/**
-	 * Whether the controller has returned a redirect instruction, e.g. a
+	 * Whether the controller has returned a redirect instruction, for example, a
 	 * "redirect:" prefixed view name, a RedirectView instance, etc.
 	 */
 	public void setRedirectModelScenario(boolean redirectModelScenario) {
@@ -204,8 +200,7 @@ public class ModelAndViewContainer {
 	 * Return the configured HTTP status, if any.
 	 * @since 4.3
 	 */
-	@Nullable
-	public HttpStatusCode getStatus() {
+	public @Nullable HttpStatusCode getStatus() {
 		return this.status;
 	}
 
@@ -253,7 +248,7 @@ public class ModelAndViewContainer {
 	}
 
 	/**
-	 * Whether the request has been handled fully within the handler, e.g.
+	 * Whether the request has been handled fully within the handler, for example,
 	 * {@code @ResponseBody} method, and therefore view resolution is not
 	 * necessary. This flag can also be set when controller methods declare an
 	 * argument of type {@code ServletResponse} or {@code OutputStream}).

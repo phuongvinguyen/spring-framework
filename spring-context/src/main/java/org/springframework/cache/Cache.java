@@ -20,7 +20,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Interface that defines common cache operations.
@@ -65,8 +65,7 @@ public interface Cache {
 	 * @see #get(Object, Class)
 	 * @see #get(Object, Callable)
 	 */
-	@Nullable
-	ValueWrapper get(Object key);
+	@Nullable ValueWrapper get(Object key);
 
 	/**
 	 * Return the value to which this cache maps the specified key,
@@ -86,8 +85,7 @@ public interface Cache {
 	 * @since 4.0
 	 * @see #get(Object)
 	 */
-	@Nullable
-	<T> T get(Object key, @Nullable Class<T> type);
+	<T> @Nullable T get(Object key, @Nullable Class<T> type);
 
 	/**
 	 * Return the value to which this cache maps the specified key, obtaining
@@ -105,8 +103,7 @@ public interface Cache {
 	 * @since 4.3
 	 * @see #get(Object)
 	 */
-	@Nullable
-	<T> T get(Object key, Callable<T> valueLoader);
+	<T> @Nullable T get(Object key, Callable<T> valueLoader);
 
 	/**
 	 * Return the value to which this cache maps the specified key,
@@ -114,7 +111,7 @@ public interface Cache {
 	 * but is allowed to return a completed {@link CompletableFuture} if the
 	 * corresponding value is immediately available.
 	 * <p>Can return {@code null} if the cache can immediately determine that
-	 * it contains no mapping for this key (e.g. through an in-memory key map).
+	 * it contains no mapping for this key (for example, through an in-memory key map).
 	 * Otherwise, the cached value will be returned in the {@link CompletableFuture},
 	 * with {@code null} indicating a late-determined cache miss. A nested
 	 * {@link ValueWrapper} potentially indicates a nullable cached value;
@@ -136,8 +133,7 @@ public interface Cache {
 	 * @since 6.1
 	 * @see #retrieve(Object, Supplier)
 	 */
-	@Nullable
-	default CompletableFuture<?> retrieve(Object key) {
+	default @Nullable CompletableFuture<?> retrieve(Object key) {
 		throw new UnsupportedOperationException(
 				getClass().getName() + " does not support CompletableFuture-based retrieval");
 	}
@@ -200,7 +196,7 @@ public interface Cache {
 	 * </code></pre>
 	 * except that the action is performed atomically. While all out-of-the-box
 	 * {@link CacheManager} implementations are able to perform the put atomically,
-	 * the operation may also be implemented in two steps, e.g. with a check for
+	 * the operation may also be implemented in two steps, for example, with a check for
 	 * presence and a subsequent put, in a non-atomic way. Check the documentation
 	 * of the native cache implementation that you are using for more details.
 	 * <p>The default implementation delegates to {@link #get(Object)} and
@@ -214,8 +210,7 @@ public interface Cache {
 	 * @since 4.1
 	 * @see #put(Object, Object)
 	 */
-	@Nullable
-	default ValueWrapper putIfAbsent(Object key, @Nullable Object value) {
+	default @Nullable ValueWrapper putIfAbsent(Object key, @Nullable Object value) {
 		ValueWrapper existingValue = get(key);
 		if (existingValue == null) {
 			put(key, value);
@@ -245,7 +240,7 @@ public interface Cache {
 	 * <p>The default implementation delegates to {@link #evict(Object)},
 	 * returning {@code false} for not-determined prior presence of the key.
 	 * Cache providers and in particular cache decorators are encouraged
-	 * to perform immediate eviction if possible (e.g. in case of generally
+	 * to perform immediate eviction if possible (for example, in case of generally
 	 * deferred cache operations within a transaction) and to reliably
 	 * determine prior presence of the given key.
 	 * @param key the key whose mapping is to be removed from the cache
@@ -299,8 +294,7 @@ public interface Cache {
 		/**
 		 * Return the actual value in the cache.
 		 */
-		@Nullable
-		Object get();
+		@Nullable Object get();
 	}
 
 
@@ -312,16 +306,14 @@ public interface Cache {
 	@SuppressWarnings("serial")
 	class ValueRetrievalException extends RuntimeException {
 
-		@Nullable
-		private final Object key;
+		private final @Nullable Object key;
 
 		public ValueRetrievalException(@Nullable Object key, Callable<?> loader, @Nullable Throwable ex) {
 			super(String.format("Value for key '%s' could not be loaded using '%s'", key, loader), ex);
 			this.key = key;
 		}
 
-		@Nullable
-		public Object getKey() {
+		public @Nullable Object getKey() {
 			return this.key;
 		}
 	}

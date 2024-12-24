@@ -34,7 +34,8 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.Assert;
 import org.springframework.util.ResourceUtils;
 import org.springframework.util.StringUtils;
@@ -63,8 +64,7 @@ public class FileSystemResource extends AbstractResource implements WritableReso
 
 	private final String path;
 
-	@Nullable
-	private final File file;
+	private final @Nullable File file;
 
 	private final Path filePath;
 
@@ -74,7 +74,7 @@ public class FileSystemResource extends AbstractResource implements WritableReso
 	 * <p>Note: When building relative resources via {@link #createRelative},
 	 * it makes a difference whether the specified resource base path here
 	 * ends with a slash or not. In the case of "C:/dir1/", relative paths
-	 * will be built underneath that root: e.g. relative path "dir2" &rarr;
+	 * will be built underneath that root: for example, relative path "dir2" &rarr;
 	 * "C:/dir1/dir2". In the case of "C:/dir1", relative paths will apply
 	 * at the same directory level: relative path "dir2" &rarr; "C:/dir2".
 	 * @param path a file path
@@ -91,7 +91,7 @@ public class FileSystemResource extends AbstractResource implements WritableReso
 	 * Create a new {@code FileSystemResource} from a {@link File} handle.
 	 * <p>Note: When building relative resources via {@link #createRelative},
 	 * the relative path will apply <i>at the same directory level</i>:
-	 * e.g. new File("C:/dir1"), relative path "dir2" &rarr; "C:/dir2"!
+	 * for example, new File("C:/dir1"), relative path "dir2" &rarr; "C:/dir2"!
 	 * If you prefer to have relative paths built underneath the given root directory,
 	 * use the {@link #FileSystemResource(String) constructor with a file path}
 	 * to append a trailing slash to the root path: "C:/dir1/", which indicates
@@ -115,7 +115,7 @@ public class FileSystemResource extends AbstractResource implements WritableReso
 	 * path cleaning and {@link #createRelative(String)} handling.
 	 * <p>Note: When building relative resources via {@link #createRelative},
 	 * the relative path will apply <i>at the same directory level</i>:
-	 * e.g. Paths.get("C:/dir1"), relative path "dir2" &rarr; "C:/dir2"!
+	 * for example, Paths.get("C:/dir1"), relative path "dir2" &rarr; "C:/dir2"!
 	 * If you prefer to have relative paths built underneath the given root directory,
 	 * use the {@link #FileSystemResource(String) constructor with a file path}
 	 * to append a trailing slash to the root path: "C:/dir1/", which indicates

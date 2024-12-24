@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.util.function.Consumer;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.CacheControl;
@@ -35,7 +36,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -69,7 +69,8 @@ class DefaultServerResponseBuilder implements ServerResponse.BodyBuilder {
 	}
 
 	@Override
-	public ServerResponse.BodyBuilder header(String headerName, String... headerValues) {
+	@SuppressWarnings("NullAway") // TODO NullAway bug potentially due to the recursive generic type
+	public ServerResponse.BodyBuilder header(String headerName, @Nullable String... headerValues) {
 		Assert.notNull(headerName, "HeaderName must not be null");
 		for (String headerValue : headerValues) {
 			this.headers.add(headerName, headerValue);
@@ -126,15 +127,8 @@ class DefaultServerResponseBuilder implements ServerResponse.BodyBuilder {
 	}
 
 	@Override
-	public ServerResponse.BodyBuilder eTag(String etag) {
-		Assert.notNull(etag, "etag must not be null");
-		if (!etag.startsWith("\"") && !etag.startsWith("W/\"")) {
-			etag = "\"" + etag;
-		}
-		if (!etag.endsWith("\"")) {
-			etag = etag + "\"";
-		}
-		this.headers.setETag(etag);
+	public ServerResponse.BodyBuilder eTag(String tag) {
+		this.headers.setETag(tag);
 		return this;
 	}
 
@@ -216,6 +210,10 @@ class DefaultServerResponseBuilder implements ServerResponse.BodyBuilder {
 				.build();
 	}
 
+	@Override
+	public ServerResponse stream(Consumer<ServerResponse.StreamBuilder> streamConsumer) {
+		return StreamingServerResponse.create(this.statusCode, this.headers, this.cookies, streamConsumer, null);
+	}
 
 	private static class WriteFunctionResponse extends AbstractServerResponse {
 
@@ -230,8 +228,7 @@ class DefaultServerResponseBuilder implements ServerResponse.BodyBuilder {
 		}
 
 		@Override
-		@Nullable
-		protected ModelAndView writeToInternal(HttpServletRequest request, HttpServletResponse response,
+		protected @Nullable ModelAndView writeToInternal(HttpServletRequest request, HttpServletResponse response,
 				Context context) throws Exception {
 
 			return this.writeFunction.write(request, response);

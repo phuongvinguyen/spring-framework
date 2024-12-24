@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 import org.springframework.util.ErrorHandler;
@@ -44,9 +45,8 @@ class SimpleAsyncTaskSchedulerTests extends AbstractSchedulingTaskExecutorTests 
 	private final AtomicBoolean taskRun = new AtomicBoolean();
 
 
-	@SuppressWarnings("deprecation")
 	@Override
-	protected org.springframework.core.task.AsyncListenableTaskExecutor buildExecutor() {
+	protected AsyncTaskExecutor buildExecutor() {
 		scheduler.setTaskDecorator(runnable -> () -> {
 			taskRun.set(true);
 			runnable.run();
@@ -63,13 +63,6 @@ class SimpleAsyncTaskSchedulerTests extends AbstractSchedulingTaskExecutorTests 
 	}
 
 	@Test
-	@SuppressWarnings("deprecation")
-	@Override
-	void submitListenableRunnableWithGetAfterShutdown() {
-		// decorated Future cannot be cancelled on shutdown with SimpleAsyncTaskScheduler
-	}
-
-	@Test
 	@Override
 	void submitCompletableRunnableWithGetAfterShutdown() {
 		// decorated Future cannot be cancelled on shutdown with SimpleAsyncTaskScheduler
@@ -78,13 +71,6 @@ class SimpleAsyncTaskSchedulerTests extends AbstractSchedulingTaskExecutorTests 
 	@Test
 	@Override
 	void submitCallableWithGetAfterShutdown() {
-		// decorated Future cannot be cancelled on shutdown with SimpleAsyncTaskScheduler
-	}
-
-	@Test
-	@SuppressWarnings("deprecation")
-	@Override
-	void submitListenableCallableWithGetAfterShutdown() {
 		// decorated Future cannot be cancelled on shutdown with SimpleAsyncTaskScheduler
 	}
 

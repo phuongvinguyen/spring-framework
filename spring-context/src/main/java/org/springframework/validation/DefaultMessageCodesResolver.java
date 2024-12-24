@@ -24,7 +24,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.StringUtils;
 
 /**
@@ -81,7 +82,7 @@ import org.springframework.util.StringUtils;
  * {@link MessageCodeFormatter format}.
  *
  * <p>In order to group all codes into a specific category within your resource bundles,
- * e.g. "validation.typeMismatch.name" instead of the default "typeMismatch.name",
+ * for example, "validation.typeMismatch.name" instead of the default "typeMismatch.name",
  * consider specifying a {@link #setPrefix prefix} to be applied.
  *
  * @author Juergen Hoeller
@@ -216,7 +217,7 @@ public class DefaultMessageCodesResolver implements MessageCodesResolver, Serial
 	public enum Format implements MessageCodeFormatter {
 
 		/**
-		 * Prefix the error code at the beginning of the generated message code. e.g.:
+		 * Prefix the error code at the beginning of the generated message code. for example:
 		 * {@code errorCode + "." + object name + "." + field}
 		 */
 		PREFIX_ERROR_CODE {
@@ -227,7 +228,7 @@ public class DefaultMessageCodesResolver implements MessageCodesResolver, Serial
 		},
 
 		/**
-		 * Postfix the error code at the end of the generated message code. e.g.:
+		 * Postfix the error code at the end of the generated message code. for example:
 		 * {@code object name + "." + field + "." + errorCode}
 		 */
 		POSTFIX_ERROR_CODE {

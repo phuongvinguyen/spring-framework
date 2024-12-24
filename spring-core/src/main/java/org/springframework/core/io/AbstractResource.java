@@ -29,8 +29,8 @@ import java.util.function.Supplier;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.ResourceUtils;
 
 /**
@@ -146,7 +146,7 @@ public abstract class AbstractResource implements Resource {
 	/**
 	 * This method reads the entire InputStream to determine the content length.
 	 * <p>For a custom subclass of {@code InputStreamResource}, we strongly
-	 * recommend overriding this method with a more optimal implementation, e.g.
+	 * recommend overriding this method with a more optimal implementation, for example,
 	 * checking File length, or possibly simply returning -1 if the stream can
 	 * only be read once.
 	 * @see #getInputStream()
@@ -215,8 +215,7 @@ public abstract class AbstractResource implements Resource {
 	 * assuming that this resource type does not have a filename.
 	 */
 	@Override
-	@Nullable
-	public String getFilename() {
+	public @Nullable String getFilename() {
 		return null;
 	}
 

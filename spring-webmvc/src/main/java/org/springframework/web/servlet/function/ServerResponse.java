@@ -33,6 +33,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 
 import org.springframework.core.ParameterizedTypeReference;
@@ -44,7 +45,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.lang.Nullable;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.servlet.ModelAndView;
@@ -66,14 +66,6 @@ public interface ServerResponse {
 	HttpStatusCode statusCode();
 
 	/**
-	 * Return the status code of this response as integer.
-	 * @return the status as an integer
-	 * @deprecated in favor of {@link #statusCode()}, for removal in 7.0
-	 */
-	@Deprecated(since = "6.0", forRemoval = true)
-	int rawStatusCode();
-
-	/**
 	 * Return the headers of this response.
 	 */
 	HttpHeaders headers();
@@ -90,8 +82,7 @@ public interface ServerResponse {
 	 * @param context the context to use when writing
 	 * @return a {@code ModelAndView} to render, or {@code null} if handled directly
 	 */
-	@Nullable
-	ModelAndView writeTo(HttpServletRequest request, HttpServletResponse response, Context context)
+	@Nullable ModelAndView writeTo(HttpServletRequest request, HttpServletResponse response, Context context)
 		throws ServletException, IOException;
 
 
@@ -343,7 +334,7 @@ public interface ServerResponse {
 		 * @return this builder
 		 * @see HttpHeaders#add(String, String)
 		 */
-		B header(String headerName, String... headerValues);
+		B header(String headerName, @Nullable String... headerValues);
 
 		/**
 		 * Manipulate this response's headers with the given consumer. The
@@ -437,7 +428,7 @@ public interface ServerResponse {
 		B cacheControl(CacheControl cacheControl);
 
 		/**
-		 * Configure one or more request header names (e.g. "Accept-Language") to
+		 * Configure one or more request header names (for example, "Accept-Language") to
 		 * add to the "Vary" response header to inform clients that the response is
 		 * subject to content negotiation and variances based on the value of the
 		 * given request headers. The configured request header names are added only
@@ -474,8 +465,7 @@ public interface ServerResponse {
 			 * @return a {@code ModelAndView} to render, or {@code null} if handled directly
 			 * @throws Exception in case of Servlet errors
 			 */
-			@Nullable
-			ModelAndView write(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws Exception;
+			@Nullable ModelAndView write(HttpServletRequest servletRequest, HttpServletResponse servletResponse) throws Exception;
 
 		}
 
@@ -547,8 +537,41 @@ public interface ServerResponse {
 		 * @return the built response
 		 */
 		ServerResponse render(String name, Map<String, ?> model);
-	}
 
+		/**
+		 * Create a low-level streaming response; for SSE support, see {@link #sse(Consumer)}.
+		 * <p>The {@link StreamBuilder} provided to the {@code streamConsumer} can
+		 * be used to write to the response in a streaming fashion. Note, the builder is
+		 * responsible for flushing the buffered content to the network.
+		 * <p>For example:
+		 * <pre class="code">
+		 * public ServerResponse handleStream(ServerRequest request) {
+		 *     return ServerResponse.ok()
+		 *       .contentType(MediaType.APPLICATION_ND_JSON)
+		 *       .stream(stream -&gt; {
+		 *         try {
+		 *           // Write and flush a first item
+		 *           stream.write(new Person("John", 51), MediaType.APPLICATION_JSON)
+		 *             .write(new byte[]{'\n'})
+		 *             .flush();
+		 *           // Write and complete with the last item
+		 *           stream.write(new Person("Jane", 42), MediaType.APPLICATION_JSON)
+		 *             .write(new byte[]{'\n'})
+		 *             .complete();
+		 *         }
+		 *         catch (IOException ex) {
+		 *           throw new UncheckedIOException(ex);
+		 *         }
+		 *     });
+		 * }
+		 * </pre>
+		 * @param streamConsumer consumer that will be provided with a stream builder
+		 * @return the server-side streaming response
+		 * @since 6.2
+		 */
+		ServerResponse stream(Consumer<StreamBuilder> streamConsumer);
+
+	}
 
 	/**
 	 * Defines a builder for a body that sends server-sent events.
@@ -556,6 +579,44 @@ public interface ServerResponse {
 	 * @since 5.3.2
 	 */
 	interface SseBuilder {
+
+		/**
+		 * Completes the stream with the given error.
+		 *
+		 * <p>The throwable is dispatched back into Spring MVC, and passed to
+		 * its exception handling mechanism. Since the response has
+		 * been committed by this point, the response status can not change.
+		 * @param t the throwable to dispatch
+		 */
+		void error(Throwable t);
+
+		/**
+		 * Completes the stream.
+		 */
+		void complete();
+
+		/**
+		 * Register a callback to be invoked when a request times
+		 * out.
+		 * @param onTimeout the callback to invoke on timeout
+		 * @return this builder
+		 */
+		SseBuilder onTimeout(Runnable onTimeout);
+
+		/**
+		 * Register a callback to be invoked when an error occurs during
+		 * processing.
+		 * @param onError the callback to invoke on error
+		 * @return this builder
+		 */
+		SseBuilder onError(Consumer<Throwable> onError);
+
+		/**
+		 * Register a callback to be invoked when the request completes.
+		 * @param onCompletion the callback to invoked on completion
+		 * @return this builder
+		 */
+		SseBuilder onComplete(Runnable onCompletion);
 
 		/**
 		 * Sends the given object as a server-sent event.
@@ -618,45 +679,83 @@ public interface ServerResponse {
 		 */
 		void data(Object object) throws IOException;
 
+	}
+
+	/**
+	 * Defines a builder for a streaming response body.
+	 *
+	 * @since 6.2
+	 */
+	interface StreamBuilder {
+
 		/**
-		 * Completes the event stream with the given error.
+		 * Completes the stream with the given error.
 		 *
 		 * <p>The throwable is dispatched back into Spring MVC, and passed to
 		 * its exception handling mechanism. Since the response has
 		 * been committed by this point, the response status can not change.
- 		 * @param t the throwable to dispatch
+		 * @param t the throwable to dispatch
 		 */
 		void error(Throwable t);
 
 		/**
-		 * Completes the event stream.
+		 * Completes the stream.
 		 */
 		void complete();
 
 		/**
-		 * Register a callback to be invoked when an SSE request times
+		 * Register a callback to be invoked when a request times
 		 * out.
 		 * @param onTimeout the callback to invoke on timeout
 		 * @return this builder
 		 */
-		SseBuilder onTimeout(Runnable onTimeout);
+		StreamBuilder onTimeout(Runnable onTimeout);
 
 		/**
-		 * Register a callback to be invoked when an error occurs during SSE
+		 * Register a callback to be invoked when an error occurs during
 		 * processing.
 		 * @param onError the callback to invoke on error
 		 * @return this builder
 		 */
-		SseBuilder onError(Consumer<Throwable> onError);
+		StreamBuilder onError(Consumer<Throwable> onError);
 
 		/**
-		 * Register a callback to be invoked when the SSE request completes.
+		 * Register a callback to be invoked when the request completes.
 		 * @param onCompletion the callback to invoked on completion
 		 * @return this builder
 		 */
-		SseBuilder onComplete(Runnable onCompletion);
-	}
+		StreamBuilder onComplete(Runnable onCompletion);
 
+		/**
+		 * Write the given object to the response stream, without flushing.
+		 * Strings will be sent as UTF-8 encoded bytes, byte arrays will be sent as-is,
+		 * and other objects will be converted into JSON using
+		 * {@linkplain HttpMessageConverter message converters}.
+		 * @param object the object to send as data
+		 * @return this builder
+		 * @throws IOException in case of I/O errors
+		 */
+		StreamBuilder write(Object object) throws IOException;
+
+		/**
+		 * Write the given object to the response stream, without flushing.
+		 * Strings will be sent as UTF-8 encoded bytes, byte arrays will be sent as-is,
+		 * and other objects will be converted into JSON using
+		 * {@linkplain HttpMessageConverter message converters}.
+		 * @param object the object to send as data
+		 * @param mediaType the media type to use for encoding the provided data
+		 * @return this builder
+		 * @throws IOException in case of I/O errors
+		 */
+		StreamBuilder write(Object object, @Nullable MediaType mediaType) throws IOException;
+
+		/**
+		 * Flush the buffered response stream content to the network.
+		 * @throws IOException in case of I/O errors
+		 */
+		void flush() throws IOException;
+
+	}
 
 	/**
 	 * Defines the context used during the {@link #writeTo(HttpServletRequest, HttpServletResponse, Context)}.

@@ -30,6 +30,7 @@ import java.util.Set;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.core.MethodParameter;
@@ -53,7 +54,6 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.http.converter.SmartHttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.http.server.ServletServerHttpResponse;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.MimeTypeUtils;
@@ -373,7 +373,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 	 * Return the type of the value to be written to the response. Typically this is
 	 * a simple check via getClass on the value but if the value is null, then the
 	 * return type needs to be examined possibly including generic type determination
-	 * (e.g. {@code ResponseEntity<T>}).
+	 * (for example, {@code ResponseEntity<T>}).
 	 */
 	protected Class<?> getReturnValueType(@Nullable Object value, MethodParameter returnType) {
 		return (value != null ? value.getClass() : returnType.getParameterType());
@@ -532,7 +532,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 		if (!StringUtils.hasText(extension)) {
 			return true;
 		}
-		extension = extension.toLowerCase(Locale.ENGLISH);
+		extension = extension.toLowerCase(Locale.ROOT);
 		if (this.safeExtensions.contains(extension)) {
 			return true;
 		}
@@ -551,8 +551,7 @@ public abstract class AbstractMessageConverterMethodProcessor extends AbstractMe
 		return (mediaType != null && (safeMediaType(mediaType)));
 	}
 
-	@Nullable
-	private MediaType resolveMediaType(ServletRequest request, String extension) {
+	private @Nullable MediaType resolveMediaType(ServletRequest request, String extension) {
 		MediaType result = null;
 		String rawMimeType = request.getServletContext().getMimeType("file." + extension);
 		if (StringUtils.hasText(rawMimeType)) {

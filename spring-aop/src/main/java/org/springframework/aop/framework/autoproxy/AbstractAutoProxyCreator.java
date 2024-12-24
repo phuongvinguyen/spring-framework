@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.aopalliance.aop.Advice;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aop.Advisor;
 import org.springframework.aop.Pointcut;
@@ -48,7 +49,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.SmartInstantiationAwareBeanPostProcessor;
 import org.springframework.core.SmartClassLoader;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -71,7 +71,7 @@ import org.springframework.util.StringUtils;
  * Instead of x repetitive proxy definitions for x target beans, you can register
  * one single such post processor with the bean factory to achieve the same effect.
  *
- * <p>Subclasses can apply any strategy to decide if a bean is to be proxied, e.g. by type,
+ * <p>Subclasses can apply any strategy to decide if a bean is to be proxied, for example, by type,
  * by name, by definition details, etc. They can also return additional interceptors that
  * should just be applied to the specific bean instance. A simple concrete implementation is
  * {@link BeanNameAutoProxyCreator}, identifying the beans to be proxied via given names.
@@ -101,8 +101,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * Convenience constant for subclasses: Return value for "do not proxy".
 	 * @see #getAdvicesAndAdvisorsForBean
 	 */
-	@Nullable
-	protected static final Object[] DO_NOT_PROXY = null;
+	protected static final Object @Nullable [] DO_NOT_PROXY = null;
 
 	/**
 	 * Convenience constant for subclasses: Return value for
@@ -129,11 +128,9 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 
 	private boolean applyCommonInterceptorsFirst = true;
 
-	@Nullable
-	private TargetSourceCreator[] customTargetSourceCreators;
+	private TargetSourceCreator @Nullable [] customTargetSourceCreators;
 
-	@Nullable
-	private BeanFactory beanFactory;
+	private @Nullable BeanFactory beanFactory;
 
 	private final Set<String> targetSourcedBeans = ConcurrentHashMap.newKeySet(16);
 
@@ -215,15 +212,13 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * Return the owning {@link BeanFactory}.
 	 * May be {@code null}, as this post-processor doesn't need to belong to a bean factory.
 	 */
-	@Nullable
-	protected BeanFactory getBeanFactory() {
+	protected @Nullable BeanFactory getBeanFactory() {
 		return this.beanFactory;
 	}
 
 
 	@Override
-	@Nullable
-	public Class<?> predictBeanType(Class<?> beanClass, String beanName) {
+	public @Nullable Class<?> predictBeanType(Class<?> beanClass, String beanName) {
 		if (this.proxyTypes.isEmpty()) {
 			return null;
 		}
@@ -256,8 +251,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	}
 
 	@Override
-	@Nullable
-	public Constructor<?>[] determineCandidateConstructors(Class<?> beanClass, String beanName) {
+	public Constructor<?> @Nullable [] determineCandidateConstructors(Class<?> beanClass, String beanName) {
 		return null;
 	}
 
@@ -269,8 +263,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	}
 
 	@Override
-	@Nullable
-	public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) {
+	public @Nullable Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) {
 		Object cacheKey = getCacheKey(beanClass, beanName);
 
 		if (!StringUtils.hasLength(beanName) || !this.targetSourcedBeans.contains(beanName)) {
@@ -311,8 +304,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * @see #getAdvicesAndAdvisorsForBean
 	 */
 	@Override
-	@Nullable
-	public Object postProcessAfterInitialization(@Nullable Object bean, String beanName) {
+	public @Nullable Object postProcessAfterInitialization(@Nullable Object bean, String beanName) {
 		if (bean != null) {
 			Object cacheKey = getCacheKey(bean.getClass(), beanName);
 			if (this.earlyBeanReferences.remove(cacheKey) != bean) {
@@ -403,7 +395,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	/**
 	 * Subclasses should override this method to return {@code true} if the
 	 * given bean should not be considered for auto-proxying by this post-processor.
-	 * <p>Sometimes we need to be able to avoid this happening, e.g. if it will lead to
+	 * <p>Sometimes we need to be able to avoid this happening, for example, if it will lead to
 	 * a circular reference or if the existing target instance needs to be preserved.
 	 * This implementation returns {@code false} unless the bean name indicates an
 	 * "original instance" according to {@code AutowireCapableBeanFactory} conventions.
@@ -426,8 +418,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * @return a TargetSource for this bean
 	 * @see #setCustomTargetSourceCreators
 	 */
-	@Nullable
-	protected TargetSource getCustomTargetSource(Class<?> beanClass, String beanName) {
+	protected @Nullable TargetSource getCustomTargetSource(Class<?> beanClass, String beanName) {
 		// We can't create fancy target sources for directly registered singletons.
 		if (this.customTargetSourceCreators != null &&
 				this.beanFactory != null && this.beanFactory.containsBean(beanName)) {
@@ -460,19 +451,19 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * @see #buildAdvisors
 	 */
 	protected Object createProxy(Class<?> beanClass, @Nullable String beanName,
-			@Nullable Object[] specificInterceptors, TargetSource targetSource) {
+			Object @Nullable [] specificInterceptors, TargetSource targetSource) {
 
 		return buildProxy(beanClass, beanName, specificInterceptors, targetSource, false);
 	}
 
 	private Class<?> createProxyClass(Class<?> beanClass, @Nullable String beanName,
-			@Nullable Object[] specificInterceptors, TargetSource targetSource) {
+			Object @Nullable [] specificInterceptors, TargetSource targetSource) {
 
 		return (Class<?>) buildProxy(beanClass, beanName, specificInterceptors, targetSource, true);
 	}
 
 	private Object buildProxy(Class<?> beanClass, @Nullable String beanName,
-			@Nullable Object[] specificInterceptors, TargetSource targetSource, boolean classOnly) {
+			Object @Nullable [] specificInterceptors, TargetSource targetSource, boolean classOnly) {
 
 		if (this.beanFactory instanceof ConfigurableListableBeanFactory clbf) {
 			AutoProxyUtils.exposeTargetClass(clbf, beanName, beanClass);
@@ -554,7 +545,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * specific to this bean (may be empty, but not null)
 	 * @return the list of Advisors for the given bean
 	 */
-	protected Advisor[] buildAdvisors(@Nullable String beanName, @Nullable Object[] specificInterceptors) {
+	protected Advisor[] buildAdvisors(@Nullable String beanName, Object @Nullable [] specificInterceptors) {
 		// Handle prototypes correctly...
 		Advisor[] commonInterceptors = resolveInterceptorNames();
 
@@ -619,7 +610,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 
 	/**
 	 * Return whether the given bean is to be proxied, what additional
-	 * advices (e.g. AOP Alliance interceptors) and advisors to apply.
+	 * advices (for example, AOP Alliance interceptors) and advisors to apply.
 	 * @param beanClass the class of the bean to advise
 	 * @param beanName the name of the bean
 	 * @param customTargetSource the TargetSource returned by the
@@ -633,8 +624,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	 * @see #DO_NOT_PROXY
 	 * @see #PROXY_WITHOUT_ADDITIONAL_INTERCEPTORS
 	 */
-	@Nullable
-	protected abstract Object[] getAdvicesAndAdvisorsForBean(Class<?> beanClass, String beanName,
+	protected abstract Object @Nullable [] getAdvicesAndAdvisorsForBean(Class<?> beanClass, String beanName,
 			@Nullable TargetSource customTargetSource) throws BeansException;
 
 }

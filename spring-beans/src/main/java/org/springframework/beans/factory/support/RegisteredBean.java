@@ -23,6 +23,8 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.TypeConverter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -31,7 +33,6 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.DependencyDescriptor;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.style.ToStringCreator;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -57,8 +58,7 @@ public final class RegisteredBean {
 
 	private final Supplier<RootBeanDefinition> mergedBeanDefinition;
 
-	@Nullable
-	private final RegisteredBean parent;
+	private final @Nullable RegisteredBean parent;
 
 
 	private RegisteredBean(ConfigurableListableBeanFactory beanFactory, Supplier<String> beanName,
@@ -202,8 +202,7 @@ public final class RegisteredBean {
 	 * Return the parent of this instance or {@code null} if not an inner-bean.
 	 * @return the parent
 	 */
-	@Nullable
-	public RegisteredBean getParent() {
+	public @Nullable RegisteredBean getParent() {
 		return this.parent;
 	}
 
@@ -245,8 +244,7 @@ public final class RegisteredBean {
 	 * @return the resolved object, or {@code null} if none found
 	 * @since 6.0.9
 	 */
-	@Nullable
-	public Object resolveAutowiredArgument(
+	public @Nullable Object resolveAutowiredArgument(
 			DependencyDescriptor descriptor, TypeConverter typeConverter, Set<String> autowiredBeanNames) {
 
 		return new ConstructorResolver((AbstractAutowireCapableBeanFactory) getBeanFactory())
@@ -266,7 +264,7 @@ public final class RegisteredBean {
 	 * Descriptor for how a bean should be instantiated. While the {@code targetClass}
 	 * is usually the declaring class of the {@code executable} (in case of a constructor
 	 * or a locally declared factory method), there are cases where retaining the actual
-	 * concrete class is necessary (e.g. for an inherited factory method).
+	 * concrete class is necessary (for example, for an inherited factory method).
 	 * @since 6.1.7
 	 * @param executable the {@link Executable} ({@link java.lang.reflect.Constructor}
 	 * or {@link java.lang.reflect.Method}) to invoke
@@ -287,13 +285,11 @@ public final class RegisteredBean {
 
 		private final RegisteredBean parent;
 
-		@Nullable
-		private final String innerBeanName;
+		private final @Nullable String innerBeanName;
 
 		private final BeanDefinition innerBeanDefinition;
 
-		@Nullable
-		private volatile String resolvedBeanName;
+		private volatile @Nullable String resolvedBeanName;
 
 		InnerBeanResolver(RegisteredBean parent, @Nullable String innerBeanName, BeanDefinition innerBeanDefinition) {
 			Assert.isInstanceOf(AbstractAutowireCapableBeanFactory.class, parent.getBeanFactory());

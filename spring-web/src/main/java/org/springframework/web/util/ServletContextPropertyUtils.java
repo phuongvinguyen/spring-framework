@@ -17,8 +17,8 @@
 package org.springframework.web.util;
 
 import jakarta.servlet.ServletContext;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.PropertyPlaceholderHelper;
 import org.springframework.util.SystemPropertyUtils;
 
@@ -26,7 +26,7 @@ import org.springframework.util.SystemPropertyUtils;
  * Helper class for resolving placeholders in texts. Usually applied to file paths.
  *
  * <p>A text may contain {@code ${...}} placeholders, to be resolved as servlet context
- * init parameters or system properties: e.g. {@code ${user.dir}}. Default values can
+ * init parameters or system properties: for example, {@code ${user.dir}}. Default values can
  * be supplied using the ":" separator between key and value.
  *
  * @author Juergen Hoeller
@@ -99,8 +99,7 @@ public abstract class ServletContextPropertyUtils {
 		}
 
 		@Override
-		@Nullable
-		public String resolvePlaceholder(String placeholderName) {
+		public @Nullable String resolvePlaceholder(String placeholderName) {
 			try {
 				String propVal = this.servletContext.getInitParameter(placeholderName);
 				if (propVal == null) {

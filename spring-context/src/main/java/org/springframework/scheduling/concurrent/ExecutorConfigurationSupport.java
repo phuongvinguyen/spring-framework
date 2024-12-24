@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.DisposableBean;
@@ -36,7 +37,8 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.Lifecycle;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.lang.Nullable;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
+import org.springframework.core.task.VirtualThreadTaskExecutor;
 
 /**
  * Base class for setting up a {@link java.util.concurrent.ExecutorService}
@@ -75,6 +77,8 @@ public abstract class ExecutorConfigurationSupport extends CustomizableThreadFac
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	private boolean virtualThreads = false;
+
 	private ThreadFactory threadFactory = this;
 
 	private boolean threadNamePrefixSet = false;
@@ -89,20 +93,35 @@ public abstract class ExecutorConfigurationSupport extends CustomizableThreadFac
 
 	private int phase = DEFAULT_PHASE;
 
-	@Nullable
-	private String beanName;
+	private @Nullable String beanName;
 
-	@Nullable
-	private ApplicationContext applicationContext;
+	private @Nullable ApplicationContext applicationContext;
 
-	@Nullable
-	private ExecutorService executor;
+	private @Nullable ExecutorService executor;
 
-	@Nullable
-	private ExecutorLifecycleDelegate lifecycleDelegate;
+	private @Nullable ExecutorLifecycleDelegate lifecycleDelegate;
 
 	private volatile boolean lateShutdown;
 
+
+	/**
+	 * Specify whether to use virtual threads instead of platform threads.
+	 * This is off by default, setting up a traditional platform thread pool.
+	 * <p>Set this flag to {@code true} on Java 21 or higher for a tightly
+	 * managed thread pool setup with virtual threads. In contrast to
+	 * {@link SimpleAsyncTaskExecutor}, this is integrated with Spring's
+	 * lifecycle management for stopping and restarting execution threads,
+	 * including an early stop signal for a graceful shutdown arrangement.
+	 * <p>Specify either this or {@link #setThreadFactory}, not both.
+	 * @since 6.2
+	 * @see #setThreadFactory
+	 * @see VirtualThreadTaskExecutor#getVirtualThreadFactory()
+	 * @see SimpleAsyncTaskExecutor#setVirtualThreads
+	 */
+	public void setVirtualThreads(boolean virtualThreads) {
+		this.virtualThreads = virtualThreads;
+		this.threadFactory = this;
+	}
 
 	/**
 	 * Set the ThreadFactory to use for the ExecutorService's thread pool.
@@ -120,6 +139,7 @@ public abstract class ExecutorConfigurationSupport extends CustomizableThreadFac
 	 */
 	public void setThreadFactory(@Nullable ThreadFactory threadFactory) {
 		this.threadFactory = (threadFactory != null ? threadFactory : this);
+		this.virtualThreads = false;
 	}
 
 	@Override
@@ -182,7 +202,7 @@ public abstract class ExecutorConfigurationSupport extends CustomizableThreadFac
 	 * <p>Note that Spring's container shutdown continues while ongoing tasks
 	 * are being completed. If you want this executor to block and wait for the
 	 * termination of tasks before the rest of the container continues to shut
-	 * down - e.g. in order to keep up other resources that your tasks may need -,
+	 * down - for example, in order to keep up other resources that your tasks may need -,
 	 * set the {@link #setAwaitTerminationSeconds "awaitTerminationSeconds"}
 	 * property instead of or in addition to this property.
 	 * @see java.util.concurrent.ExecutorService#shutdown()
@@ -282,7 +302,9 @@ public abstract class ExecutorConfigurationSupport extends CustomizableThreadFac
 		if (!this.threadNamePrefixSet && this.beanName != null) {
 			setThreadNamePrefix(this.beanName + "-");
 		}
-		this.executor = initializeExecutor(this.threadFactory, this.rejectedExecutionHandler);
+		ThreadFactory factory = (this.virtualThreads ?
+				new VirtualThreadTaskExecutor(getThreadNamePrefix()).getVirtualThreadFactory() : this.threadFactory);
+		this.executor = initializeExecutor(factory, this.rejectedExecutionHandler);
 		this.lifecycleDelegate = new ExecutorLifecycleDelegate(this.executor);
 	}
 

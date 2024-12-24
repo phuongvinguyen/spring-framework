@@ -29,12 +29,12 @@ import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.PathContainer;
 import org.springframework.http.server.RequestPath;
-import org.springframework.lang.Nullable;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
@@ -95,7 +95,7 @@ public final class UrlHandlerFilter extends OncePerRequestFilter {
 				path = ServletRequestPathUtils.parseAndCache(request);
 			}
 			for (Map.Entry<Handler, List<PathPattern>> entry : this.handlers.entrySet()) {
-				if (!entry.getKey().canHandle(request, path)) {
+				if (!entry.getKey().supports(request, path)) {
 					continue;
 				}
 				for (PathPattern pattern : entry.getValue()) {
@@ -118,7 +118,7 @@ public final class UrlHandlerFilter extends OncePerRequestFilter {
 
 	/**
 	 * Create a builder by adding a handler for URL's with a trailing slash.
-	 * @param pathPatterns path patterns to map the handler to, e.g.
+	 * @param pathPatterns path patterns to map the handler to, for example,
 	 * <code>"/path/&#42;"</code>, <code>"/path/&#42;&#42;"</code>,
 	 * <code>"/path/foo/"</code>.
 	 * @return a spec to configure the trailing slash handler with
@@ -136,7 +136,7 @@ public final class UrlHandlerFilter extends OncePerRequestFilter {
 
 		/**
 		 * Add a handler for URL's with a trailing slash.
-		 * @param pathPatterns path patterns to map the handler to, e.g.
+		 * @param pathPatterns path patterns to map the handler to, for example,
 		 * <code>"/path/&#42;"</code>, <code>"/path/&#42;&#42;"</code>,
 		 * <code>"/path/foo/"</code>.
 		 * @return a spec to configure the handler with
@@ -208,8 +208,7 @@ public final class UrlHandlerFilter extends OncePerRequestFilter {
 
 			private final List<PathPattern> pathPatterns;
 
-			@Nullable
-			private Consumer<HttpServletRequest> interceptor;
+			private @Nullable Consumer<HttpServletRequest> interceptor;
 
 			private DefaultTrailingSlashSpec(String[] patterns) {
 				this.pathPatterns = Arrays.stream(patterns)
@@ -248,7 +247,7 @@ public final class UrlHandlerFilter extends OncePerRequestFilter {
 		/**
 		 * Whether the handler handles the given request.
 		 */
-		boolean canHandle(HttpServletRequest request, RequestPath path);
+		boolean supports(HttpServletRequest request, RequestPath path);
 
 		/**
 		 * Handle the request, possibly delegating to the rest of the filter chain.
@@ -277,9 +276,9 @@ public final class UrlHandlerFilter extends OncePerRequestFilter {
 		}
 
 		@Override
-		public boolean canHandle(HttpServletRequest request, RequestPath path) {
-			List<PathContainer.Element> elements = path.elements();
-			return (!elements.isEmpty() && elements.get(elements.size() - 1).value().equals("/"));
+		public boolean supports(HttpServletRequest request, RequestPath path) {
+			List<PathContainer.Element> elements = path.pathWithinApplication().elements();
+			return (elements.size() > 1 && elements.get(elements.size() - 1).value().equals("/"));
 		}
 
 		@Override

@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
 import reactor.netty5.http.HttpResources;
 import reactor.netty5.resources.ConnectionProvider;
 import reactor.netty5.resources.LoopResources;
@@ -27,7 +28,6 @@ import reactor.netty5.resources.LoopResources;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.http.client.ReactorResourceFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -47,18 +47,15 @@ public class ReactorNetty2ResourceFactory implements InitializingBean, Disposabl
 
 	private boolean useGlobalResources = true;
 
-	@Nullable
-	private Consumer<HttpResources> globalResourcesConsumer;
+	private @Nullable Consumer<HttpResources> globalResourcesConsumer;
 
 	private Supplier<ConnectionProvider> connectionProviderSupplier = () -> ConnectionProvider.create("webflux", 500);
 
-	@Nullable
-	private ConnectionProvider connectionProvider;
+	private @Nullable ConnectionProvider connectionProvider;
 
 	private Supplier<LoopResources> loopResourcesSupplier = () -> LoopResources.create("webflux-http");
 
-	@Nullable
-	private LoopResources loopResources;
+	private @Nullable LoopResources loopResources;
 
 	private boolean manageConnectionProvider = false;
 
@@ -107,8 +104,9 @@ public class ReactorNetty2ResourceFactory implements InitializingBean, Disposabl
 	 * Use this when you don't want to participate in global resources and
 	 * you want to customize the creation of the managed {@code ConnectionProvider}.
 	 * <p>By default, {@code ConnectionProvider.elastic("http")} is used.
-	 * <p>Note that this option is ignored if {@code userGlobalResources=false} or
-	 * {@link #setConnectionProvider(ConnectionProvider)} is set.
+	 * <p>Note that this supplier is ignored if {@link #isUseGlobalResources()}
+	 * is {@code true} or once the {@link #setConnectionProvider(ConnectionProvider) ConnectionProvider}
+	 * is set.
 	 * @param supplier the supplier to use
 	 */
 	public void setConnectionProviderSupplier(Supplier<ConnectionProvider> supplier) {
@@ -136,8 +134,9 @@ public class ReactorNetty2ResourceFactory implements InitializingBean, Disposabl
 	 * Use this when you don't want to participate in global resources and
 	 * you want to customize the creation of the managed {@code LoopResources}.
 	 * <p>By default, {@code LoopResources.create("webflux-http")} is used.
-	 * <p>Note that this option is ignored if {@code userGlobalResources=false} or
-	 * {@link #setLoopResources(LoopResources)} is set.
+	 * <p>Note that this supplier is ignored if {@link #isUseGlobalResources()}
+	 * is {@code true} or once the {@link #setLoopResources(LoopResources) LoopResources}
+	 * is set.
 	 * @param supplier the supplier to use
 	 */
 	public void setLoopResourcesSupplier(Supplier<LoopResources> supplier) {

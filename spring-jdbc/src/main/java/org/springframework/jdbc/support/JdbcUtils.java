@@ -36,10 +36,10 @@ import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.datasource.DataSourceUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.NumberUtils;
 import org.springframework.util.StringUtils;
 
@@ -141,7 +141,7 @@ public abstract class JdbcUtils {
 	 * {@link #getResultSetValue(java.sql.ResultSet, int)} for unknown types.
 	 * <p>Note that the returned value may not be assignable to the specified
 	 * required type, in case of an unknown type. Calling code needs to deal
-	 * with this case appropriately, e.g. throwing a corresponding exception.
+	 * with this case appropriately, for example, throwing a corresponding exception.
 	 * @param rs is the ResultSet holding the data
 	 * @param index is the column index
 	 * @param requiredType the required value type (may be {@code null})
@@ -150,8 +150,7 @@ public abstract class JdbcUtils {
 	 * @throws SQLException if thrown by the JDBC API
 	 * @see #getResultSetValue(ResultSet, int)
 	 */
-	@Nullable
-	public static Object getResultSetValue(ResultSet rs, int index, @Nullable Class<?> requiredType) throws SQLException {
+	public static @Nullable Object getResultSetValue(ResultSet rs, int index, @Nullable Class<?> requiredType) throws SQLException {
 		if (requiredType == null) {
 			return getResultSetValue(rs, index);
 		}
@@ -207,7 +206,7 @@ public abstract class JdbcUtils {
 		}
 		else if (requiredType.isEnum()) {
 			// Enums can either be represented through a String or an enum index value:
-			// leave enum type conversion up to the caller (e.g. a ConversionService)
+			// leave enum type conversion up to the caller (for example, a ConversionService)
 			// but make sure that we return nothing other than a String or an Integer.
 			Object obj = rs.getObject(index);
 			if (obj instanceof String) {
@@ -219,7 +218,7 @@ public abstract class JdbcUtils {
 				return NumberUtils.convertNumberToTargetClass(number, Integer.class);
 			}
 			else {
-				// e.g. on Postgres: getObject returns a PGObject, but we need a String
+				// for example, on Postgres: getObject returns a PGObject, but we need a String
 				return rs.getString(index);
 			}
 		}
@@ -239,8 +238,8 @@ public abstract class JdbcUtils {
 				}
 			}
 
-			// Corresponding SQL types for JSR-310 / Joda-Time types, left up
-			// to the caller to convert them (e.g. through a ConversionService).
+			// Corresponding SQL types for JSR-310, left up to the caller to convert
+			// them (for example, through a ConversionService).
 			String typeName = requiredType.getSimpleName();
 			return switch (typeName) {
 				case "LocalDate" -> rs.getDate(index);
@@ -274,8 +273,7 @@ public abstract class JdbcUtils {
 	 * @see java.sql.Clob
 	 * @see java.sql.Timestamp
 	 */
-	@Nullable
-	public static Object getResultSetValue(ResultSet rs, int index) throws SQLException {
+	public static @Nullable Object getResultSetValue(ResultSet rs, int index) throws SQLException {
 		Object obj = rs.getObject(index);
 		String className = null;
 		if (obj != null) {
@@ -443,10 +441,9 @@ public abstract class JdbcUtils {
 	 * Extract a common name for the target database in use even if
 	 * various drivers/platforms provide varying names at runtime.
 	 * @param source the name as provided in database meta-data
-	 * @return the common name to be used (e.g. "DB2" or "Sybase")
+	 * @return the common name to be used (for example, "DB2" or "Sybase")
 	 */
-	@Nullable
-	public static String commonDatabaseName(@Nullable String source) {
+	public static @Nullable String commonDatabaseName(@Nullable String source) {
 		String name = source;
 		if (source != null && source.startsWith("DB2")) {
 			name = "DB2";
@@ -476,11 +473,10 @@ public abstract class JdbcUtils {
 	 * Resolve the standard type name for the given SQL type, if possible.
 	 * @param sqlType the SQL type to resolve
 	 * @return the corresponding constant name in {@link java.sql.Types}
-	 * (e.g. "VARCHAR"/"NUMERIC"), or {@code null} if not resolvable
+	 * (for example, "VARCHAR"/"NUMERIC"), or {@code null} if not resolvable
 	 * @since 5.2
 	 */
-	@Nullable
-	public static String resolveTypeName(int sqlType) {
+	public static @Nullable String resolveTypeName(int sqlType) {
 		return typeNames.get(sqlType);
 	}
 

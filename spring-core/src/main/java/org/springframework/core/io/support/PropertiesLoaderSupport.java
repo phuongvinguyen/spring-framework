@@ -24,9 +24,9 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.io.Resource;
-import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DefaultPropertiesPersister;
 import org.springframework.util.PropertiesPersister;
@@ -44,24 +44,21 @@ public abstract class PropertiesLoaderSupport {
 	/** Logger available to subclasses. */
 	protected final Log logger = LogFactory.getLog(getClass());
 
-	@Nullable
-	protected Properties[] localProperties;
+	protected Properties @Nullable [] localProperties;
 
 	protected boolean localOverride = false;
 
-	@Nullable
-	private Resource[] locations;
+	private Resource @Nullable [] locations;
 
 	private boolean ignoreResourceNotFound = false;
 
-	@Nullable
-	private String fileEncoding;
+	private @Nullable String fileEncoding;
 
 	private PropertiesPersister propertiesPersister = DefaultPropertiesPersister.INSTANCE;
 
 
 	/**
-	 * Set local properties, e.g. via the "props" tag in XML bean definitions.
+	 * Set local properties, for example, via the "props" tag in XML bean definitions.
 	 * These can be considered defaults, to be overridden by properties
 	 * loaded from files.
 	 */
@@ -70,7 +67,7 @@ public abstract class PropertiesLoaderSupport {
 	}
 
 	/**
-	 * Set local properties, e.g. via the "props" tag in XML bean definitions,
+	 * Set local properties, for example, via the "props" tag in XML bean definitions,
 	 * allowing for merging multiple properties sets into one.
 	 */
 	public void setPropertiesArray(Properties... propertiesArray) {

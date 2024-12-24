@@ -21,10 +21,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.cache.Cache;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.servlet.resource.PathResourceResolver;
@@ -46,19 +47,15 @@ public class ResourceHandlerRegistration {
 
 	private final List<Resource> locationsResources = new ArrayList<>();
 
-	@Nullable
-	private Integer cachePeriod;
+	private @Nullable Integer cachePeriod;
 
-	@Nullable
-	private CacheControl cacheControl;
+	private @Nullable CacheControl cacheControl;
 
-	@Nullable
-	private ResourceChainRegistration resourceChainRegistration;
+	private @Nullable ResourceChainRegistration resourceChainRegistration;
 
 	private boolean useLastModified = true;
 
-	@Nullable
-	private Function<Resource, String> etagGenerator;
+	private @Nullable Function<Resource, String> etagGenerator;
 
 	private boolean optimizeLocations = false;
 
@@ -84,9 +81,9 @@ public class ResourceHandlerRegistration {
 	 * {@code /META-INF/public-web-resources/} directory, with resources in the
 	 * web application root taking precedence.
 	 * <p>For {@link org.springframework.core.io.UrlResource URL-based resources}
-	 * (e.g. files, HTTP URLs, etc) this method supports a special prefix to
+	 * (for example, files, HTTP URLs, etc) this method supports a special prefix to
 	 * indicate the charset associated with the URL so that relative paths
-	 * appended to it can be encoded correctly, e.g.
+	 * appended to it can be encoded correctly, for example,
 	 * {@code [charset=Windows-31J]https://example.org/path}.
 	 * @return the same {@link ResourceHandlerRegistration} instance, for
 	 * chained method invocation

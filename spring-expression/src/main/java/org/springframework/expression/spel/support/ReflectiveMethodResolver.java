@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.BridgeMethodResolver;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.TypeDescriptor;
@@ -40,7 +42,6 @@ import org.springframework.expression.TypeConverter;
 import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.SpelMessage;
 import org.springframework.expression.spel.support.ReflectionHelper.ArgumentsMatchKind;
-import org.springframework.lang.Nullable;
 
 /**
  * Reflection-based {@link MethodResolver} used by default in {@link StandardEvaluationContext}
@@ -59,8 +60,7 @@ public class ReflectiveMethodResolver implements MethodResolver {
 	// more closely following the Java rules.
 	private final boolean useDistance;
 
-	@Nullable
-	private Map<Class<?>, MethodFilter> filters;
+	private @Nullable Map<Class<?>, MethodFilter> filters;
 
 
 	public ReflectiveMethodResolver() {
@@ -113,8 +113,7 @@ public class ReflectiveMethodResolver implements MethodResolver {
 	 * </ol>
 	 */
 	@Override
-	@Nullable
-	public MethodExecutor resolve(EvaluationContext context, Object targetObject, String name,
+	public @Nullable MethodExecutor resolve(EvaluationContext context, Object targetObject, String name,
 			List<TypeDescriptor> argumentTypes) throws AccessException {
 
 		try {
@@ -228,7 +227,7 @@ public class ReflectiveMethodResolver implements MethodResolver {
 	private Set<Method> getMethods(Class<?> type, Object targetObject) {
 		if (targetObject instanceof Class) {
 			Set<Method> result = new LinkedHashSet<>();
-			// Add these so that static methods are invocable on the type: e.g. Float.valueOf(..)
+			// Add these so that static methods are invocable on the type: for example, Float.valueOf(..)
 			for (Method method : getMethods(type)) {
 				if (Modifier.isStatic(method.getModifiers())) {
 					result.add(method);
@@ -270,7 +269,7 @@ public class ReflectiveMethodResolver implements MethodResolver {
 	/**
 	 * Return the set of methods for this type. The default implementation returns the
 	 * result of {@link Class#getMethods()} for the given {@code type}, but subclasses
-	 * may override in order to alter the results, e.g. specifying static methods
+	 * may override in order to alter the results, for example, specifying static methods
 	 * declared elsewhere.
 	 * @param type the class for which to return the methods
 	 * @since 3.1.1

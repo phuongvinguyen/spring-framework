@@ -26,25 +26,25 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertyResolver;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.io.Resource;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
  * Editor for {@link org.springframework.core.io.Resource} arrays, to
  * automatically convert {@code String} location patterns
- * (e.g. {@code "file:C:/my*.txt"} or {@code "classpath*:myfile.txt"})
+ * (for example, {@code "file:C:/my*.txt"} or {@code "classpath*:myfile.txt"})
  * to {@code Resource} array properties. Can also translate a collection
  * or array of location patterns into a merged Resource array.
  *
  * <p>A path may contain {@code ${...}} placeholders, to be
  * resolved as {@link org.springframework.core.env.Environment} properties:
- * e.g. {@code ${user.dir}}. Unresolvable placeholders are ignored by default.
+ * for example, {@code ${user.dir}}. Unresolvable placeholders are ignored by default.
  *
  * <p>Delegates to a {@link ResourcePatternResolver},
  * by default using a {@link PathMatchingResourcePatternResolver}.
@@ -64,8 +64,7 @@ public class ResourceArrayPropertyEditor extends PropertyEditorSupport {
 
 	private final ResourcePatternResolver resourcePatternResolver;
 
-	@Nullable
-	private PropertyResolver propertyResolver;
+	private @Nullable PropertyResolver propertyResolver;
 
 	private final boolean ignoreUnresolvablePlaceholders;
 

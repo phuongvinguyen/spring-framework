@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -46,7 +48,6 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -130,8 +131,7 @@ public abstract class AbstractJdbcInsert {
 	/**
 	 * Get the name of the table for this insert.
 	 */
-	@Nullable
-	public String getTableName() {
+	public @Nullable String getTableName() {
 		return this.tableMetaDataContext.getTableName();
 	}
 
@@ -146,8 +146,7 @@ public abstract class AbstractJdbcInsert {
 	/**
 	 * Get the name of the schema for this insert.
 	 */
-	@Nullable
-	public String getSchemaName() {
+	public @Nullable String getSchemaName() {
 		return this.tableMetaDataContext.getSchemaName();
 	}
 
@@ -162,8 +161,7 @@ public abstract class AbstractJdbcInsert {
 	/**
 	 * Get the name of the catalog for this insert.
 	 */
-	@Nullable
-	public String getCatalogName() {
+	public @Nullable String getCatalogName() {
 		return this.tableMetaDataContext.getCatalogName();
 	}
 
@@ -490,7 +488,7 @@ public abstract class AbstractJdbcInsert {
 			// get generated keys feature. HSQL is one, PostgreSQL is another. Postgres uses a RETURNING
 			// clause while HSQL uses a second query that has to be executed with the same connection.
 
-			if (keyQuery.toUpperCase().startsWith("RETURNING")) {
+			if (keyQuery.toUpperCase(Locale.ROOT).startsWith("RETURNING")) {
 				Long key = getJdbcTemplate().queryForObject(
 						getInsertString() + " " + keyQuery, Long.class, values.toArray());
 				Map<String, Object> keys = new HashMap<>(2);
@@ -615,7 +613,7 @@ public abstract class AbstractJdbcInsert {
 	 * @param preparedStatement the PreparedStatement
 	 * @param values the values to be set
 	 */
-	private void setParameterValues(PreparedStatement preparedStatement, List<?> values, @Nullable int... columnTypes)
+	private void setParameterValues(PreparedStatement preparedStatement, List<?> values, int @Nullable ... columnTypes)
 			throws SQLException {
 
 		int colIndex = 0;

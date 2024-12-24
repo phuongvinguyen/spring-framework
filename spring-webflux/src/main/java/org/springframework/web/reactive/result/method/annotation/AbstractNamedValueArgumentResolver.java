@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import kotlin.reflect.KFunction;
 import kotlin.reflect.KParameter;
 import kotlin.reflect.jvm.ReflectJvmMapping;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.BeanUtils;
@@ -35,9 +36,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.KotlinDetector;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ReactiveAdapterRegistry;
-import org.springframework.lang.Nullable;
 import org.springframework.ui.Model;
-import org.springframework.util.Assert;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.ValueConstants;
 import org.springframework.web.reactive.BindingContext;
@@ -70,11 +69,9 @@ import org.springframework.web.server.ServerWebInputException;
  */
 public abstract class AbstractNamedValueArgumentResolver extends HandlerMethodArgumentResolverSupport {
 
-	@Nullable
-	private final ConfigurableBeanFactory configurableBeanFactory;
+	private final @Nullable ConfigurableBeanFactory configurableBeanFactory;
 
-	@Nullable
-	private final BeanExpressionContext expressionContext;
+	private final @Nullable BeanExpressionContext expressionContext;
 
 	private final Map<MethodParameter, NamedValueInfo> namedValueInfoCache = new ConcurrentHashMap<>(256);
 
@@ -168,8 +165,7 @@ public abstract class AbstractNamedValueArgumentResolver extends HandlerMethodAr
 	 * Resolve the given annotation-specified value,
 	 * potentially containing placeholders and expressions.
 	 */
-	@Nullable
-	private Object resolveEmbeddedValuesAndExpressions(String value) {
+	private @Nullable Object resolveEmbeddedValuesAndExpressions(String value) {
 		if (this.configurableBeanFactory == null || this.expressionContext == null) {
 			return value;
 		}
@@ -194,8 +190,7 @@ public abstract class AbstractNamedValueArgumentResolver extends HandlerMethodAr
 	/**
 	 * Apply type conversion if necessary.
 	 */
-	@Nullable
-	private Object applyConversion(@Nullable Object value, NamedValueInfo namedValueInfo, MethodParameter parameter,
+	private @Nullable Object applyConversion(@Nullable Object value, NamedValueInfo namedValueInfo, MethodParameter parameter,
 			BindingContext bindingContext, ServerWebExchange exchange) {
 
 		WebDataBinder binder = bindingContext.createDataBinder(exchange, namedValueInfo.name);
@@ -227,9 +222,9 @@ public abstract class AbstractNamedValueArgumentResolver extends HandlerMethodAr
 
 		return Mono.fromSupplier(() -> {
 			Object value = null;
-			boolean hasDefaultValue = KotlinDetector.isKotlinReflectPresent()
-					&& KotlinDetector.isKotlinType(parameter.getDeclaringClass())
-					&& KotlinDelegate.hasDefaultValue(parameter);
+			boolean hasDefaultValue = KotlinDetector.isKotlinReflectPresent() &&
+					KotlinDetector.isKotlinType(parameter.getDeclaringClass()) &&
+					KotlinDelegate.hasDefaultValue(parameter);
 			if (namedValueInfo.defaultValue != null) {
 				value = resolveEmbeddedValuesAndExpressions(namedValueInfo.defaultValue);
 			}
@@ -278,8 +273,7 @@ public abstract class AbstractNamedValueArgumentResolver extends HandlerMethodAr
 	 * A {@code null} results in a {@code false} value for {@code boolean}s or
 	 * an exception for other primitives.
 	 */
-	@Nullable
-	private Object handleNullValue(String name, @Nullable Object value, Class<?> paramType) {
+	private @Nullable Object handleNullValue(String name, @Nullable Object value, Class<?> paramType) {
 		if (value == null) {
 			if (paramType == boolean.class) {
 				return Boolean.FALSE;
@@ -318,8 +312,7 @@ public abstract class AbstractNamedValueArgumentResolver extends HandlerMethodAr
 
 		private final boolean required;
 
-		@Nullable
-		private final String defaultValue;
+		private final @Nullable String defaultValue;
 
 		public NamedValueInfo(String name, boolean required, @Nullable String defaultValue) {
 			this.name = name;
@@ -327,6 +320,7 @@ public abstract class AbstractNamedValueArgumentResolver extends HandlerMethodAr
 			this.defaultValue = defaultValue;
 		}
 	}
+
 
 	/**
 	 * Inner class to avoid a hard dependency on Kotlin at runtime.
@@ -339,7 +333,9 @@ public abstract class AbstractNamedValueArgumentResolver extends HandlerMethodAr
 		 */
 		public static boolean hasDefaultValue(MethodParameter parameter) {
 			Method method = parameter.getMethod();
-			Assert.notNull(method, () -> "Retrieved null method from MethodParameter: " + parameter);
+			if (method == null) {
+				return false;
+			}
 			KFunction<?> function = ReflectJvmMapping.getKotlinFunction(method);
 			if (function != null) {
 				int index = 0;

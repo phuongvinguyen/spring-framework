@@ -30,21 +30,20 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.core.task.AsyncListenableTaskExecutor;
+import org.jspecify.annotations.Nullable;
+
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.TaskDecorator;
 import org.springframework.core.task.TaskRejectedException;
-import org.springframework.lang.Nullable;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.util.Assert;
 import org.springframework.util.ConcurrentReferenceHashMap;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.ListenableFutureTask;
 
 /**
  * JavaBean that allows for configuring a {@link java.util.concurrent.ThreadPoolExecutor}
  * in bean style (through its "corePoolSize", "maxPoolSize", "keepAliveSeconds", "queueCapacity"
  * properties) and exposing it as a Spring {@link org.springframework.core.task.TaskExecutor}.
- * This class is also well suited for management and monitoring (e.g. through JMX),
+ * This class is also well suited for management and monitoring (for example, through JMX),
  * providing several useful attributes: "corePoolSize", "maxPoolSize", "keepAliveSeconds"
  * (all supporting updates at runtime); "poolSize", "activeCount" (for introspection only).
  *
@@ -82,7 +81,7 @@ import org.springframework.util.concurrent.ListenableFutureTask;
  */
 @SuppressWarnings({"serial", "deprecation"})
 public class ThreadPoolTaskExecutor extends ExecutorConfigurationSupport
-		implements AsyncListenableTaskExecutor, SchedulingTaskExecutor {
+		implements AsyncTaskExecutor, SchedulingTaskExecutor {
 
 	private final Object poolSizeMonitor = new Object();
 
@@ -100,11 +99,9 @@ public class ThreadPoolTaskExecutor extends ExecutorConfigurationSupport
 
 	private boolean strictEarlyShutdown = false;
 
-	@Nullable
-	private TaskDecorator taskDecorator;
+	private @Nullable TaskDecorator taskDecorator;
 
-	@Nullable
-	private ThreadPoolExecutor threadPoolExecutor;
+	private @Nullable ThreadPoolExecutor threadPoolExecutor;
 
 	// Runnable decorator to user-level FutureTask, if different
 	private final Map<Runnable, Object> decoratedTaskMap =
@@ -408,32 +405,6 @@ public class ThreadPoolTaskExecutor extends ExecutorConfigurationSupport
 		ExecutorService executor = getThreadPoolExecutor();
 		try {
 			return executor.submit(task);
-		}
-		catch (RejectedExecutionException ex) {
-			throw new TaskRejectedException(executor, task, ex);
-		}
-	}
-
-	@Override
-	public ListenableFuture<?> submitListenable(Runnable task) {
-		ExecutorService executor = getThreadPoolExecutor();
-		try {
-			ListenableFutureTask<Object> future = new ListenableFutureTask<>(task, null);
-			executor.execute(future);
-			return future;
-		}
-		catch (RejectedExecutionException ex) {
-			throw new TaskRejectedException(executor, task, ex);
-		}
-	}
-
-	@Override
-	public <T> ListenableFuture<T> submitListenable(Callable<T> task) {
-		ExecutorService executor = getThreadPoolExecutor();
-		try {
-			ListenableFutureTask<T> future = new ListenableFutureTask<>(task);
-			executor.execute(future);
-			return future;
 		}
 		catch (RejectedExecutionException ex) {
 			throw new TaskRejectedException(executor, task, ex);

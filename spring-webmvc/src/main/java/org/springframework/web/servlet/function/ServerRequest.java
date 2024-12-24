@@ -34,6 +34,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -44,7 +45,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.PathContainer;
 import org.springframework.http.server.RequestPath;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.MultiValueMap;
@@ -66,7 +66,7 @@ public interface ServerRequest {
 	/**
 	 * Get the HTTP method.
 	 * @return the HTTP method as an HttpMethod enum value, or {@code null}
-	 * if not resolvable (e.g. in case of a non-standard HTTP method)
+	 * if not resolvable (for example, in case of a non-standard HTTP method)
 	 */
 	HttpMethod method();
 
@@ -165,7 +165,7 @@ public interface ServerRequest {
 	/**
 	 * Bind to this request and return an instance of the given type.
 	 * @param bindType the type of class to bind this request to
-	 * @param dataBinderCustomizer used to customize the data binder, e.g. set
+	 * @param dataBinderCustomizer used to customize the data binder, for example, set
 	 * (dis)allowed fields
 	 * @param <T> the type to bind to
 	 * @return a constructed and bound instance of {@code bindType}
@@ -445,8 +445,7 @@ public interface ServerRequest {
 		 * {@linkplain InetSocketAddress#getPort() port} in the returned address will
 		 * be {@code 0}.
 		 */
-		@Nullable
-		InetSocketAddress host();
+		@Nullable InetSocketAddress host();
 
 		/**
 		 * Get the value of the {@code Range} header.
@@ -467,8 +466,7 @@ public interface ServerRequest {
 		 * @param headerName the header name
 		 * @since 5.2.5
 		 */
-		@Nullable
-		default String firstHeader(String headerName) {
+		default @Nullable String firstHeader(String headerName) {
 			List<String> list = header(headerName);
 			return list.isEmpty() ? null : list.get(0);
 		}

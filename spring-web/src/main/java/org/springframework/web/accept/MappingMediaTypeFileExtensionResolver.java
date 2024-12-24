@@ -26,8 +26,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.http.MediaType;
-import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -57,7 +58,7 @@ public class MappingMediaTypeFileExtensionResolver implements MediaTypeFileExten
 		if (mediaTypes != null) {
 			Set<String> allFileExtensions = CollectionUtils.newHashSet(mediaTypes.size());
 			mediaTypes.forEach((extension, mediaType) -> {
-				String lowerCaseExtension = extension.toLowerCase(Locale.ENGLISH);
+				String lowerCaseExtension = extension.toLowerCase(Locale.ROOT);
 				this.mediaTypes.put(lowerCaseExtension, mediaType);
 				addFileExtension(mediaType, lowerCaseExtension);
 				allFileExtensions.add(lowerCaseExtension);
@@ -107,9 +108,8 @@ public class MappingMediaTypeFileExtensionResolver implements MediaTypeFileExten
 	 * Use this method for a reverse lookup from extension to MediaType.
 	 * @return a MediaType for the extension, or {@code null} if none found
 	 */
-	@Nullable
-	protected MediaType lookupMediaType(String extension) {
-		return this.mediaTypes.get(extension.toLowerCase(Locale.ENGLISH));
+	protected @Nullable MediaType lookupMediaType(String extension) {
+		return this.mediaTypes.get(extension.toLowerCase(Locale.ROOT));
 	}
 
 }

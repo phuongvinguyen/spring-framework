@@ -25,7 +25,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -38,7 +39,7 @@ import org.springframework.util.CollectionUtils;
  * <p><strong>Note:</strong> this class uses {@link UriComponentsBuilder}
  * internally to expand URI templates, and is merely a shortcut for already
  * prepared URI templates. For more dynamic preparation and extra flexibility,
- * e.g. around URI encoding, consider using {@code UriComponentsBuilder} or the
+ * for example, around URI encoding, consider using {@code UriComponentsBuilder} or the
  * higher level {@link DefaultUriBuilderFactory} which adds several encoding
  * modes on top of {@code UriComponentsBuilder}. See the
  * <a href="https://docs.spring.io/spring/docs/current/spring-framework-reference/web.html#mvc-uri-building">reference docs</a>

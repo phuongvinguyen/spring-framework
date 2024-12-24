@@ -16,8 +16,11 @@
 
 package org.springframework.expression.spel;
 
+import java.util.Locale;
+
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.SpringProperties;
-import org.springframework.lang.Nullable;
 
 /**
  * Configuration object for the SpEL expression parser.
@@ -46,14 +49,13 @@ public class SpelParserConfiguration {
 	static {
 		String compilerMode = SpringProperties.getProperty(SPRING_EXPRESSION_COMPILER_MODE_PROPERTY_NAME);
 		defaultCompilerMode = (compilerMode != null ?
-				SpelCompilerMode.valueOf(compilerMode.toUpperCase()) : SpelCompilerMode.OFF);
+				SpelCompilerMode.valueOf(compilerMode.toUpperCase(Locale.ROOT)) : SpelCompilerMode.OFF);
 	}
 
 
 	private final SpelCompilerMode compilerMode;
 
-	@Nullable
-	private final ClassLoader compilerClassLoader;
+	private final @Nullable ClassLoader compilerClassLoader;
 
 	private final boolean autoGrowNullReferences;
 
@@ -148,8 +150,7 @@ public class SpelParserConfiguration {
 	/**
 	 * Return the ClassLoader to use as the basis for expression compilation.
 	 */
-	@Nullable
-	public ClassLoader getCompilerClassLoader() {
+	public @Nullable ClassLoader getCompilerClassLoader() {
 		return this.compilerClassLoader;
 	}
 

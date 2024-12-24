@@ -24,18 +24,19 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.jdbc.core.SqlTypeValue;
-import org.springframework.lang.Nullable;
 
 /**
  * Object to represent a character-based parameter value for a SQL statement,
- * e.g. a character stream for a CLOB/NCLOB or a LONGVARCHAR column.
+ * for example, a character stream for a CLOB/NCLOB or a LONGVARCHAR column.
  *
  * <p>Designed for use with {@link org.springframework.jdbc.core.JdbcTemplate}
  * as well as {@link org.springframework.jdbc.core.simple.JdbcClient}, to be
  * passed in as a parameter value wrapping the target content value. Can be
  * combined with {@link org.springframework.jdbc.core.SqlParameterValue} for
- * specifying a SQL type, e.g.
+ * specifying a SQL type, for example,
  * {@code new SqlParameterValue(Types.CLOB, new SqlCharacterValue(myContent))}.
  * With most database drivers, the type hint is not actually necessary.
  *

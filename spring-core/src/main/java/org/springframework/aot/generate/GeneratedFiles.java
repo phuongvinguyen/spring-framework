@@ -18,9 +18,10 @@ package org.springframework.aot.generate;
 
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.io.InputStreamSource;
 import org.springframework.javapoet.JavaFile;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -181,6 +182,7 @@ public interface GeneratedFiles {
 	 */
 	void handleFile(Kind kind, String path, ThrowingConsumer<FileHandler> handler);
 
+
 	private static String getClassNamePath(String className) {
 		Assert.hasLength(className, "'className' must not be empty");
 		validatePackage(ClassUtils.getPackageName(className), className);
@@ -232,13 +234,12 @@ public interface GeneratedFiles {
 		 * generated using CGLIB.
 		 */
 		CLASS
-
 	}
+
 
 	/**
 	 * Provide access to a particular file and offer convenient methods to retrieve,
 	 * save, or override its content.
-	 *
 	 * @since 6.2
 	 */
 	abstract class FileHandler {
@@ -264,8 +265,7 @@ public interface GeneratedFiles {
 		 * Return an {@link InputStreamSource} for the content of the file or
 		 * {@code null} if the file does not exist.
 		 */
-		@Nullable
-		public InputStreamSource getContent() {
+		public @Nullable InputStreamSource getContent() {
 			return (exists() ? this.existingContent.get() : null);
 		}
 
@@ -292,7 +292,6 @@ public interface GeneratedFiles {
 		}
 
 		protected abstract void copy(InputStreamSource content, boolean override);
-
 	}
 
 }

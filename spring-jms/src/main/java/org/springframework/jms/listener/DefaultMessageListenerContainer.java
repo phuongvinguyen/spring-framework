@@ -28,6 +28,7 @@ import jakarta.jms.Connection;
 import jakarta.jms.JMSException;
 import jakarta.jms.MessageConsumer;
 import jakarta.jms.Session;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
@@ -35,7 +36,6 @@ import org.springframework.jms.JmsException;
 import org.springframework.jms.support.JmsUtils;
 import org.springframework.jms.support.destination.CachingDestinationResolver;
 import org.springframework.jms.support.destination.DestinationResolver;
-import org.springframework.lang.Nullable;
 import org.springframework.scheduling.SchedulingAwareRunnable;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.util.Assert;
@@ -47,7 +47,7 @@ import org.springframework.util.backoff.FixedBackOff;
 /**
  * Message listener container variant that uses plain JMS client APIs, specifically
  * a loop of {@code MessageConsumer.receive()} calls that also allow for
- * transactional reception of messages (registering them with XA transactions).
+ * transactional receipt of messages (registering them with XA transactions).
  * Designed to work in a native JMS environment as well as in a Jakarta EE environment,
  * with only minimal differences in configuration.
  *
@@ -70,7 +70,7 @@ import org.springframework.util.backoff.FixedBackOff;
  * {@code MessageConsumer} (only refreshed in case of failure), using the JMS provider's
  * resources as efficiently as possible.
  *
- * <p>Message reception and listener execution can automatically be wrapped
+ * <p>Message receipt and listener execution can automatically be wrapped
  * in transactions by passing a Spring
  * {@link org.springframework.transaction.PlatformTransactionManager} into the
  * {@link #setTransactionManager "transactionManager"} property. This will usually
@@ -89,7 +89,7 @@ import org.springframework.util.backoff.FixedBackOff;
  * by specifying a {@link #setMaxConcurrentConsumers "maxConcurrentConsumers"}
  * value that is higher than the {@link #setConcurrentConsumers "concurrentConsumers"}
  * value. Since the latter's default is 1, you can also simply specify a
- * "maxConcurrentConsumers" of e.g. 5, which will lead to dynamic scaling up to
+ * "maxConcurrentConsumers" of, for example, 5, which will lead to dynamic scaling up to
  * 5 concurrent consumers in case of increasing message load, as well as dynamic
  * shrinking back to the standard number of consumers once the load decreases.
  * Consider adapting the {@link #setIdleTaskExecutionLimit "idleTaskExecutionLimit"}
@@ -190,8 +190,7 @@ public class DefaultMessageListenerContainer extends AbstractPollingMessageListe
 		);
 
 
-	@Nullable
-	private Executor taskExecutor;
+	private @Nullable Executor taskExecutor;
 
 	private boolean virtualThreads = false;
 
@@ -221,8 +220,7 @@ public class DefaultMessageListenerContainer extends AbstractPollingMessageListe
 
 	private volatile boolean interrupted;
 
-	@Nullable
-	private Runnable stopCallback;
+	private @Nullable Runnable stopCallback;
 
 	private Object currentRecoveryMarker = new Object();
 
@@ -353,8 +351,8 @@ public class DefaultMessageListenerContainer extends AbstractPollingMessageListe
 
 
 	/**
-	 * Specify concurrency limits via a "lower-upper" String, e.g. "5-10", or a simple
-	 * upper limit String, e.g. "10" (the lower limit will be 1 in this case).
+	 * Specify concurrency limits via a "lower-upper" String, for example, "5-10", or a simple
+	 * upper limit String, for example, "10" (the lower limit will be 1 in this case).
 	 * <p>This listener container will always hold on to the minimum number of consumers
 	 * ({@link #setConcurrentConsumers}) and will slowly scale up to the maximum number
 	 * of consumers {@link #setMaxConcurrentConsumers} in case of increasing load.
@@ -374,7 +372,7 @@ public class DefaultMessageListenerContainer extends AbstractPollingMessageListe
 		}
 		catch (NumberFormatException ex) {
 			throw new IllegalArgumentException("Invalid concurrency value [" + concurrency + "]: only " +
-					"single maximum integer (e.g. \"5\") and minimum-maximum combo (e.g. \"3-5\") supported.");
+					"single maximum integer (for example, \"5\") and minimum-maximum combo (for example, \"3-5\") supported.");
 		}
 	}
 
@@ -474,7 +472,7 @@ public class DefaultMessageListenerContainer extends AbstractPollingMessageListe
 
 	/**
 	 * Specify the maximum number of messages to process in one task.
-	 * More concretely, this limits the number of message reception attempts
+	 * More concretely, this limits the number of message receipt attempts
 	 * per task, which includes receive iterations that did not actually
 	 * pick up a message until they hit their timeout (see the
 	 * {@link #setReceiveTimeout "receiveTimeout"} property).
@@ -562,7 +560,7 @@ public class DefaultMessageListenerContainer extends AbstractPollingMessageListe
 	 * The minimum number of consumers
 	 * (see {@link #setConcurrentConsumers "concurrentConsumers"})
 	 * will be kept around until shutdown in any case.
-	 * <p>Within each task execution, a number of message reception attempts
+	 * <p>Within each task execution, a number of message receipt attempts
 	 * (according to the "maxMessagesPerTask" setting) will each wait for an incoming
 	 * message (according to the "receiveTimeout" setting). If all of those receive
 	 * attempts in a given task return without a message, the task is considered
@@ -1246,14 +1244,11 @@ public class DefaultMessageListenerContainer extends AbstractPollingMessageListe
 	 */
 	private class AsyncMessageListenerInvoker implements SchedulingAwareRunnable {
 
-		@Nullable
-		private Session session;
+		private @Nullable Session session;
 
-		@Nullable
-		private MessageConsumer consumer;
+		private @Nullable MessageConsumer consumer;
 
-		@Nullable
-		private Object lastRecoveryMarker;
+		private @Nullable Object lastRecoveryMarker;
 
 		private boolean lastMessageSucceeded;
 
@@ -1261,8 +1256,7 @@ public class DefaultMessageListenerContainer extends AbstractPollingMessageListe
 
 		private volatile boolean idle = true;
 
-		@Nullable
-		private volatile Thread currentReceiveThread;
+		private volatile @Nullable Thread currentReceiveThread;
 
 		@Override
 		public void run() {

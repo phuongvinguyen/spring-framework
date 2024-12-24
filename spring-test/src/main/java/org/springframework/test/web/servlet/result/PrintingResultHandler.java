@@ -24,10 +24,10 @@ import java.util.stream.Collectors;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.style.ToStringCreator;
 import org.springframework.http.HttpHeaders;
-import org.springframework.lang.Nullable;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MvcResult;
@@ -172,7 +172,7 @@ public class PrintingResultHandler implements ResultHandler {
 	/**
 	 * Print the handler.
 	 */
-	protected void printHandler(@Nullable Object handler, @Nullable HandlerInterceptor[] interceptors)
+	protected void printHandler(@Nullable Object handler, HandlerInterceptor @Nullable [] interceptors)
 			throws Exception {
 
 		if (handler == null) {
@@ -207,7 +207,7 @@ public class PrintingResultHandler implements ResultHandler {
 	protected void printModelAndView(@Nullable ModelAndView mav) throws Exception {
 		this.printer.printValue("View name", (mav != null) ? mav.getViewName() : null);
 		this.printer.printValue("View", (mav != null) ? mav.getView() : null);
-		if (mav == null || mav.getModel().size() == 0) {
+		if (mav == null || mav.getModel().isEmpty()) {
 			this.printer.printValue("Model", null);
 		}
 		else {

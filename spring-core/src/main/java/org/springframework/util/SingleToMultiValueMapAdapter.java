@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Adapts a given {@link MultiValueMap} to the {@link Map} contract. The
@@ -47,11 +47,9 @@ final class SingleToMultiValueMapAdapter<K, V> implements MultiValueMap<K, V>, S
 
 	private final Map<K, V> targetMap;
 
-	@Nullable
-	private transient Collection<List<V>> values;
+	private transient @Nullable Collection<List<V>> values;
 
-	@Nullable
-	private transient Set<Entry<K, List<V>>> entries;
+	private transient @Nullable Set<Entry<K, List<V>>> entries;
 
 
 	/**
@@ -67,8 +65,7 @@ final class SingleToMultiValueMapAdapter<K, V> implements MultiValueMap<K, V>, S
 	// MultiValueMap implementation
 
 	@Override
-	@Nullable
-	public V getFirst(K key) {
+	public @Nullable V getFirst(K key) {
 		return this.targetMap.get(key);
 	}
 
@@ -154,15 +151,13 @@ final class SingleToMultiValueMapAdapter<K, V> implements MultiValueMap<K, V>, S
 	}
 
 	@Override
-	@Nullable
-	public List<V> get(Object key) {
+	public @Nullable List<V> get(Object key) {
 		V value = this.targetMap.get(key);
 		return (value != null) ? Collections.singletonList(value) : null;
 	}
 
 	@Override
-	@Nullable
-	public List<V> put(K key, List<V> values) {
+	public @Nullable List<V> put(K key, List<V> values) {
 		if (values.isEmpty()) {
 			V result = this.targetMap.put(key, null);
 			return (result != null) ? Collections.singletonList(result) : null;
@@ -177,8 +172,7 @@ final class SingleToMultiValueMapAdapter<K, V> implements MultiValueMap<K, V>, S
 	}
 
 	@Override
-	@Nullable
-	public List<V> remove(Object key) {
+	public @Nullable List<V> remove(Object key) {
 		V result = this.targetMap.remove(key);
 		return (result != null) ? Collections.singletonList(result) : null;
 	}
@@ -271,39 +265,35 @@ final class SingleToMultiValueMapAdapter<K, V> implements MultiValueMap<K, V>, S
 		this.targetMap.forEach((k, v) -> action.accept(k, Collections.singletonList(v)));
 	}
 
+
 	@Override
-	public boolean equals(@Nullable Object o) {
-		if (o == this) {
+	public boolean equals(@Nullable Object other) {
+		if (this == other) {
 			return true;
 		}
-		else if (o instanceof Map<?,?> other) {
-			if (this.size() != other.size()) {
-				return false;
-			}
+		if (other instanceof Map<?,?> otherMap && size() == otherMap.size()) {
 			try {
 				for (Entry<K, List<V>> e : entrySet()) {
 					K key = e.getKey();
 					List<V> values = e.getValue();
 					if (values == null) {
-						if (other.get(key) != null || !other.containsKey(key)) {
+						if (otherMap.get(key) != null || !otherMap.containsKey(key)) {
 							return false;
 						}
 					}
 					else {
-						if (!values .equals(other.get(key))) {
+						if (!values.equals(otherMap.get(key))) {
 							return false;
 						}
 					}
 				}
+				return true;
 			}
-			catch (ClassCastException | NullPointerException ignore) {
-				return false;
+			catch (ClassCastException | NullPointerException ignored) {
+				// fall through
 			}
-			return true;
 		}
-		else {
-			return false;
-		}
+		return false;
 	}
 
 	@Override

@@ -30,9 +30,9 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.context.SmartLifecycle;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -86,8 +86,7 @@ public class SubProtocolWebSocketHandler
 
 	private final Set<SubProtocolHandler> protocolHandlers = new LinkedHashSet<>();
 
-	@Nullable
-	private SubProtocolHandler defaultProtocolHandler;
+	private @Nullable SubProtocolHandler defaultProtocolHandler;
 
 	private final Map<String, WebSocketSessionHolder> sessions = new ConcurrentHashMap<>();
 
@@ -103,8 +102,7 @@ public class SubProtocolWebSocketHandler
 
 	private final DefaultStats stats = new DefaultStats();
 
-	@Nullable
-	private Integer phase;
+	private @Nullable Integer phase;
 
 	private volatile boolean running;
 
@@ -184,8 +182,7 @@ public class SubProtocolWebSocketHandler
 	/**
 	 * Return the default sub-protocol handler to use.
 	 */
-	@Nullable
-	public SubProtocolHandler getDefaultProtocolHandler() {
+	public @Nullable SubProtocolHandler getDefaultProtocolHandler() {
 		return this.defaultProtocolHandler;
 	}
 
@@ -232,7 +229,7 @@ public class SubProtocolWebSocketHandler
 	 * is established and before the first sub-protocol message is received.
 	 * <p>This handler is for WebSocket connections that use a sub-protocol.
 	 * Therefore, we expect the client to send at least one sub-protocol message
-	 * in the beginning, or else we assume the connection isn't doing well, e.g.
+	 * in the beginning, or else we assume the connection isn't doing well, for example,
 	 * proxy issue, slow network, and can be closed.
 	 * <p>By default this is set to {@code 60,000} (1 minute).
 	 * @param timeToFirstMessage the maximum time allowed in milliseconds
@@ -403,7 +400,7 @@ public class SubProtocolWebSocketHandler
 			}
 		}
 		catch (Exception ex) {
-			// Could be part of normal workflow (e.g. browser tab closed)
+			// Could be part of normal workflow (for example, browser tab closed)
 			if (logger.isDebugEnabled()) {
 				logger.debug("Failed to send message to client in " + session + ": " + message, ex);
 			}
@@ -477,8 +474,7 @@ public class SubProtocolWebSocketHandler
 		return handler;
 	}
 
-	@Nullable
-	private String resolveSessionId(Message<?> message) {
+	private @Nullable String resolveSessionId(Message<?> message) {
 		for (SubProtocolHandler handler : this.protocolHandlerLookup.values()) {
 			String sessionId = handler.resolveSessionId(message);
 			if (sessionId != null) {
@@ -497,7 +493,7 @@ public class SubProtocolWebSocketHandler
 	/**
 	 * A higher-level protocol can use heartbeats to detect sessions that need to
 	 * be cleaned up. However, if a WebSocket session is established, but messages
-	 * can't flow (e.g. due to a proxy issue), then the higher level protocol is
+	 * can't flow (for example, due to a proxy issue), then the higher level protocol is
 	 * never successfully negotiated, and without heartbeats, sessions can hang.
 	 * The method  checks for sessions that have not received any messages 60
 	 * seconds after the WebSocket session was established, and closes them.

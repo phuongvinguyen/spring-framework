@@ -31,17 +31,20 @@ import org.springframework.core.MethodIntrospector;
 import org.springframework.core.ResolvableType;
 import org.springframework.test.context.TestContextAnnotationUtils;
 import org.springframework.test.context.bean.override.BeanOverrideProcessor;
+import org.springframework.test.context.bean.override.BeanOverrideStrategy;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.MethodFilter;
-import org.springframework.util.StringUtils;
+
+import static org.springframework.test.context.bean.override.BeanOverrideStrategy.REPLACE;
+import static org.springframework.test.context.bean.override.BeanOverrideStrategy.REPLACE_OR_CREATE;
 
 /**
  * {@link BeanOverrideProcessor} implementation for {@link TestBean @TestBean}
- * support, which creates metadata for annotated fields in a given class and
- * ensures that a corresponding static factory method exists, according to the
- * {@linkplain TestBean documented conventions}.
+ * support, which creates a {@link TestBeanOverrideHandler} for annotated
+ * fields in a given class and ensures that a corresponding static factory method
+ * exists, according to the {@linkplain TestBean documented conventions}.
  *
  * @author Simon Baslé
  * @author Sam Brannen
@@ -51,31 +54,35 @@ import org.springframework.util.StringUtils;
 class TestBeanOverrideProcessor implements BeanOverrideProcessor {
 
 	@Override
-	public TestBeanOverrideMetadata createMetadata(Annotation overrideAnnotation, Class<?> testClass, Field field) {
-		if (!(overrideAnnotation instanceof TestBean testBeanAnnotation)) {
+	public TestBeanOverrideHandler createHandler(Annotation overrideAnnotation, Class<?> testClass, Field field) {
+		if (!(overrideAnnotation instanceof TestBean testBean)) {
 			throw new IllegalStateException("Invalid annotation passed to %s: expected @TestBean on field %s.%s"
 					.formatted(getClass().getSimpleName(), field.getDeclaringClass().getName(), field.getName()));
 		}
-		Method overrideMethod;
-		String methodName = testBeanAnnotation.methodName();
+
+		String beanName = (!testBean.name().isBlank() ? testBean.name() : null);
+		String methodName = testBean.methodName();
+		BeanOverrideStrategy strategy = (testBean.enforceOverride() ? REPLACE : REPLACE_OR_CREATE);
+
+		Method factoryMethod;
 		if (!methodName.isBlank()) {
 			// If the user specified an explicit method name, search for that.
-			overrideMethod = findTestBeanFactoryMethod(testClass, field.getType(), methodName);
+			factoryMethod = findTestBeanFactoryMethod(testClass, field.getType(), methodName);
 		}
 		else {
-			// Otherwise, search for candidate factory methods the field name
-			// or explicit bean name (if any).
+			// Otherwise, search for candidate factory methods whose names match either
+			// the field name or the explicit bean name (if any).
 			List<String> candidateMethodNames = new ArrayList<>();
 			candidateMethodNames.add(field.getName());
 
-			String beanName = testBeanAnnotation.name();
-			if (StringUtils.hasText(beanName)) {
+			if (beanName != null) {
 				candidateMethodNames.add(beanName);
 			}
-			overrideMethod = findTestBeanFactoryMethod(testClass, field.getType(), candidateMethodNames);
+			factoryMethod = findTestBeanFactoryMethod(testClass, field.getType(), candidateMethodNames);
 		}
-		String beanName = (StringUtils.hasText(testBeanAnnotation.name()) ? testBeanAnnotation.name() : null);
-		return new TestBeanOverrideMetadata(field, ResolvableType.forField(field, testClass), beanName, overrideMethod);
+
+		return new TestBeanOverrideHandler(
+				field, ResolvableType.forField(field, testClass), beanName, strategy, factoryMethod);
 	}
 
 	/**

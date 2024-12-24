@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,18 +55,6 @@ class DefaultClientRequestObservationConventionTests {
 	}
 
 	@Test
-	@SuppressWarnings("removal")
-	void shouldAddKeyValuesForNullExchange() {
-		ClientRequestObservationContext context = new ClientRequestObservationContext();
-		assertThat(this.observationConvention.getLowCardinalityKeyValues(context)).hasSize(6)
-				.contains(KeyValue.of("method", "none"), KeyValue.of("uri", "none"), KeyValue.of("status", "CLIENT_ERROR"),
-						KeyValue.of("client.name", "none"),
-						KeyValue.of("exception", "none"), KeyValue.of("outcome", "UNKNOWN"));
-		assertThat(this.observationConvention.getHighCardinalityKeyValues(context)).hasSize(1)
-				.contains(KeyValue.of("http.url", "none"));
-	}
-
-	@Test
 	void shouldAddKeyValuesForExchangeWithException() {
 		ClientRequest.Builder request = ClientRequest.create(HttpMethod.GET, URI.create("/test"));
 		ClientRequestObservationContext context = new ClientRequestObservationContext(request);
@@ -89,6 +77,19 @@ class DefaultClientRequestObservationConventionTests {
 						KeyValue.of("status", "200"), KeyValue.of("client.name", "none"), KeyValue.of("outcome", "SUCCESS"));
 		assertThat(this.observationConvention.getHighCardinalityKeyValues(context)).hasSize(1)
 				.contains(KeyValue.of("http.url", "/resource/42"));
+	}
+
+	@Test
+	void shouldAddKeyValuesForRequestWithUriTemplateNoPath() {
+		ClientRequest.Builder request = ClientRequest.create(HttpMethod.GET, URI.create("https://example.org"))
+				.attribute(WebClient.class.getName() + ".uriTemplate", "https://example.org");
+		ClientRequestObservationContext context = createContext(request);
+		context.setUriTemplate("https://example.org");
+		assertThat(this.observationConvention.getLowCardinalityKeyValues(context))
+				.contains(KeyValue.of("exception", "none"), KeyValue.of("method", "GET"), KeyValue.of("uri", "/"),
+						KeyValue.of("status", "200"), KeyValue.of("client.name", "example.org"), KeyValue.of("outcome", "SUCCESS"));
+		assertThat(this.observationConvention.getHighCardinalityKeyValues(context)).hasSize(1)
+				.contains(KeyValue.of("http.url", "https://example.org"));
 	}
 
 	@Test

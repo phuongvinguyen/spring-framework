@@ -46,7 +46,7 @@ use a protected method to map any exception to a `ProblemDetail`.
 
 You can register `ErrorResponse` interceptors through the
 xref:web/webmvc/mvc-config.adoc[MVC Config] with a `WebMvcConfigurer`. Use that to intercept
-any RFC 7807 response and take some action.
+any RFC 9457 response and take some action.
 
 
 
@@ -64,7 +64,7 @@ this `Map`.
 
 You can also extend `ProblemDetail` to add dedicated non-standard properties.
 The copy constructor in `ProblemDetail` allows a subclass to make it easy to be created
-from an existing `ProblemDetail`. This could be done centrally, e.g. from an
+from an existing `ProblemDetail`. This could be done centrally, for example, from an
 `@ControllerAdvice` such as `ResponseEntityExceptionHandler` that re-creates the
 `ProblemDetail` of an exception into a subclass with the additional non-standard fields.
 

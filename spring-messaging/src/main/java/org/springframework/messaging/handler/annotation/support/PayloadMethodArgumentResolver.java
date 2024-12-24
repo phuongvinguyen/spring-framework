@@ -19,8 +19,9 @@ package org.springframework.messaging.handler.annotation.support;
 import java.lang.annotation.Annotation;
 import java.util.Optional;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.MethodParameter;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.converter.MessageConverter;
@@ -61,8 +62,7 @@ public class PayloadMethodArgumentResolver implements HandlerMethodArgumentResol
 
 	private final MessageConverter converter;
 
-	@Nullable
-	private final Validator validator;
+	private final @Nullable Validator validator;
 
 	private final boolean useDefaultResolution;
 
@@ -111,8 +111,7 @@ public class PayloadMethodArgumentResolver implements HandlerMethodArgumentResol
 	}
 
 	@Override
-	@Nullable
-	public Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
+	public @Nullable Object resolveArgument(MethodParameter parameter, Message<?> message) throws Exception {
 		Payload ann = parameter.getParameterAnnotation(Payload.class);
 		if (ann != null && StringUtils.hasText(ann.expression())) {
 			throw new IllegalStateException("@Payload SpEL expressions not supported by this resolver");
@@ -186,7 +185,7 @@ public class PayloadMethodArgumentResolver implements HandlerMethodArgumentResol
 	 * Resolve the target class to convert the payload to.
 	 * <p>By default this is simply {@link MethodParameter#getParameterType()}
 	 * but that can be overridden to select a more specific target type after
-	 * also taking into account the "Content-Type", e.g. return {@code String}
+	 * also taking into account the "Content-Type", for example, return {@code String}
 	 * if target type is {@code Object} and {@code "Content-Type:text/**"}.
 	 * @param parameter the target method parameter
 	 * @param message the message being processed

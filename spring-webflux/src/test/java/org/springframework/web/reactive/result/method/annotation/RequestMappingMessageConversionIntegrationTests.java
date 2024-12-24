@@ -17,6 +17,7 @@
 package org.springframework.web.reactive.result.method.annotation;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,6 +32,7 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -50,7 +52,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
-import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -329,6 +330,17 @@ class RequestMappingMessageConversionIntegrationTests extends AbstractRequestMap
 		List<?> req = asList(new Person("Robert"), new Person("Marie"));
 		List<?> res = asList(new Person("ROBERT"), new Person("MARIE"));
 		assertThat(performPost("/person-transform/flux", JSON, req, JSON, PERSON_LIST).getBody()).isEqualTo(res);
+	}
+
+	@ParameterizedHttpServerTest // see gh-33885
+	void personTransformWithFluxDelayed(HttpServer httpServer) throws Exception {
+		startServer(httpServer);
+
+		List<?> req = asList(new Person("Robert"), new Person("Marie"));
+		List<?> res = asList(new Person("ROBERT"), new Person("MARIE"));
+		assertThat(performPost("/person-transform/flux-delayed", JSON, req, JSON, PERSON_LIST))
+				.satisfies(r -> assertThat(r.getBody()).isEqualTo(res))
+				.satisfies(r -> assertThat(r.getHeaders().getContentLength()).isNotZero());
 	}
 
 	@ParameterizedHttpServerTest
@@ -630,6 +642,11 @@ class RequestMappingMessageConversionIntegrationTests extends AbstractRequestMap
 		@PostMapping("/flux")
 		Flux<Person> transformFlux(@RequestBody Flux<Person> persons) {
 			return persons.map(person -> new Person(person.getName().toUpperCase()));
+		}
+
+		@PostMapping("/flux-delayed")
+		Flux<Person> transformDelayed(@RequestBody Flux<Person> persons) {
+			return transformFlux(persons).delayElements(Duration.ofMillis(10));
 		}
 
 		@PostMapping("/observable")

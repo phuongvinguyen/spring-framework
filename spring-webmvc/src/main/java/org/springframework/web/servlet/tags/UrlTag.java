@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.jsp.JspException;
 import jakarta.servlet.jsp.PageContext;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.support.RequestDataValueProcessor;
@@ -149,17 +149,13 @@ public class UrlTag extends HtmlEscapingAwareTag implements ParamAware {
 
 	private Set<String> templateParams = Collections.emptySet();
 
-	@Nullable
-	private UrlType type;
+	private @Nullable UrlType type;
 
-	@Nullable
-	private String value;
+	private @Nullable String value;
 
-	@Nullable
-	private String context;
+	private @Nullable String context;
 
-	@Nullable
-	private String var;
+	private @Nullable String var;
 
 	private int scope = PageContext.PAGE_SCOPE;
 
@@ -323,7 +319,7 @@ public class UrlTag extends HtmlEscapingAwareTag implements ParamAware {
 		StringBuilder qs = new StringBuilder();
 		for (Param param : params) {
 			if (!usedParams.contains(param.getName()) && StringUtils.hasLength(param.getName())) {
-				if (includeQueryStringDelimiter && qs.length() == 0) {
+				if (includeQueryStringDelimiter && qs.isEmpty()) {
 					qs.append('?');
 				}
 				else {

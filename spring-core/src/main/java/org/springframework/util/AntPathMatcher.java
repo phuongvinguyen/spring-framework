@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * {@link PathMatcher} implementation for Ant-style path patterns.
@@ -91,8 +91,7 @@ public class AntPathMatcher implements PathMatcher {
 
 	private boolean trimTokens = false;
 
-	@Nullable
-	private volatile Boolean cachePatterns;
+	private volatile @Nullable Boolean cachePatterns;
 
 	private final Map<String, String[]> tokenizedPatternCache = new ConcurrentHashMap<>(256);
 
@@ -526,7 +525,7 @@ public class AntPathMatcher implements PathMatcher {
 	/**
 	 * Combine two patterns into a new pattern.
 	 * <p>This implementation simply concatenates the two patterns, unless
-	 * the first pattern contains a file extension match (e.g., {@code *.html}).
+	 * the first pattern contains a file extension match (for example, {@code *.html}).
 	 * In that case, the second pattern will be merged into the first. Otherwise,
 	 * an {@code IllegalArgumentException} will be thrown.
 	 * <h4>Examples</h4>
@@ -654,8 +653,7 @@ public class AntPathMatcher implements PathMatcher {
 
 		private final boolean exactMatch;
 
-		@Nullable
-		private final Pattern pattern;
+		private final @Nullable Pattern pattern;
 
 		private final List<String> variableNames = new ArrayList<>();
 
@@ -851,13 +849,13 @@ public class AntPathMatcher implements PathMatcher {
 
 
 		/**
-		 * Value class that holds information about the pattern, e.g. number of
+		 * Value class that holds information about the pattern, for example, number of
 		 * occurrences of "*", "**", and "{" pattern elements.
 		 */
 		private static class PatternInfo {
 
-			@Nullable
-			private final String pattern;
+
+			private final @Nullable String pattern;
 
 			private int uriVars;
 
@@ -869,8 +867,7 @@ public class AntPathMatcher implements PathMatcher {
 
 			private boolean prefixPattern;
 
-			@Nullable
-			private Integer length;
+			private @Nullable Integer length;
 
 			PatternInfo(@Nullable String pattern, String pathSeparator) {
 				this.pattern = pattern;

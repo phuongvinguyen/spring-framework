@@ -25,13 +25,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ValueConstants;
 
 /**
@@ -48,9 +49,7 @@ public abstract class AbstractNamedValueArgumentResolver implements HttpServiceA
 
 	protected final Log logger = LogFactory.getLog(getClass());
 
-
-	@Nullable
-	private final ConversionService conversionService;
+	private final @Nullable ConversionService conversionService;
 
 	private final Map<MethodParameter, NamedValueInfo> namedValueInfoCache = new ConcurrentHashMap<>(256);
 
@@ -102,8 +101,7 @@ public abstract class AbstractNamedValueArgumentResolver implements HttpServiceA
 		return true;
 	}
 
-	@Nullable
-	private NamedValueInfo getNamedValueInfo(MethodParameter parameter, HttpRequestValues.Metadata requestValues) {
+	private @Nullable NamedValueInfo getNamedValueInfo(MethodParameter parameter, HttpRequestValues.Metadata requestValues) {
 		NamedValueInfo info = this.namedValueInfoCache.get(parameter);
 		if (info == null) {
 			info = createNamedValueInfo(parameter, requestValues);
@@ -120,16 +118,14 @@ public abstract class AbstractNamedValueArgumentResolver implements HttpServiceA
 	 * Return information about the request value, or {@code null} if the
 	 * parameter does not represent a request value of interest.
 	 */
-	@Nullable
-	protected abstract NamedValueInfo createNamedValueInfo(MethodParameter parameter);
+	protected abstract @Nullable NamedValueInfo createNamedValueInfo(MethodParameter parameter);
 
 	/**
 	 * Variant of {@link #createNamedValueInfo(MethodParameter)} that also provides
 	 * access to the static values set from {@code @HttpExchange} attributes.
 	 * @since 6.2
 	 */
-	@Nullable
-	protected NamedValueInfo createNamedValueInfo(
+	protected @Nullable NamedValueInfo createNamedValueInfo(
 			MethodParameter parameter, HttpRequestValues.Metadata metadata) {
 
 		return createNamedValueInfo(parameter);
@@ -192,11 +188,15 @@ public abstract class AbstractNamedValueArgumentResolver implements HttpServiceA
 		}
 
 		if (this.conversionService != null && !(value instanceof String)) {
+			Object beforeValue = value;
 			parameter = parameter.nestedIfOptional();
 			Class<?> type = parameter.getNestedParameterType();
 			value = (type != Object.class && !type.isArray() ?
 					this.conversionService.convert(value, new TypeDescriptor(parameter), STRING_TARGET_TYPE) :
 					this.conversionService.convert(value, String.class));
+			if (!StringUtils.hasText((String) value) && !required && beforeValue == null) {
+				value = null;
+			}
 		}
 
 		if (value == null) {
@@ -234,8 +234,7 @@ public abstract class AbstractNamedValueArgumentResolver implements HttpServiceA
 
 		private final boolean required;
 
-		@Nullable
-		private final String defaultValue;
+		private final @Nullable String defaultValue;
 
 		private final String label;
 
@@ -246,7 +245,7 @@ public abstract class AbstractNamedValueArgumentResolver implements HttpServiceA
 		 * @param name the name to use, possibly empty if not specified
 		 * @param required whether it is marked as required
 		 * @param defaultValue fallback value, possibly {@link ValueConstants#DEFAULT_NONE}
-		 * @param label how it should appear in error messages, e.g. "path variable", "request header"
+		 * @param label how it should appear in error messages, for example, "path variable", "request header"
 		 * @param multiValued whether this argument resolver supports sending multiple values;
 		 * if not, then multiple values are formatted as a String value
 		 */
@@ -263,7 +262,6 @@ public abstract class AbstractNamedValueArgumentResolver implements HttpServiceA
 		public NamedValueInfo update(String name, boolean required, @Nullable String defaultValue) {
 			return new NamedValueInfo(name, required, defaultValue, this.label, this.multiValued);
 		}
-
 	}
 
 }

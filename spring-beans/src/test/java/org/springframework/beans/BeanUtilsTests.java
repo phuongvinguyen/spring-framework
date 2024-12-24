@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -46,7 +47,6 @@ import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceEditor;
-import org.springframework.lang.Nullable;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -521,10 +521,36 @@ class BeanUtilsTests {
 		assertThat(BeanUtils.isSimpleProperty(type)).as("Type [" + type.getName() + "] should not be a simple property").isFalse();
 	}
 
+	@Test
+	void resolveMultipleRecordPublicConstructor() throws NoSuchMethodException {
+		assertThat(BeanUtils.getResolvableConstructor(RecordWithMultiplePublicConstructors.class))
+				.isEqualTo(RecordWithMultiplePublicConstructors.class.getDeclaredConstructor(String.class, String.class));
+	}
+
+	@Test
+	void resolveMultipleRecordePackagePrivateConstructor() throws NoSuchMethodException {
+		assertThat(BeanUtils.getResolvableConstructor(RecordWithMultiplePackagePrivateConstructors.class))
+				.isEqualTo(RecordWithMultiplePackagePrivateConstructors.class.getDeclaredConstructor(String.class, String.class));
+	}
+
 	private void assertSignatureEquals(Method desiredMethod, String signature) {
 		assertThat(BeanUtils.resolveSignature(signature, MethodSignatureBean.class)).isEqualTo(desiredMethod);
 	}
 
+
+	public record RecordWithMultiplePublicConstructors(String value, String name) {
+		@SuppressWarnings("unused")
+		public RecordWithMultiplePublicConstructors(String value) {
+			this(value, "default value");
+		}
+	}
+
+	record RecordWithMultiplePackagePrivateConstructors(String value, String name) {
+		@SuppressWarnings("unused")
+		RecordWithMultiplePackagePrivateConstructors(String value) {
+			this(value, "default value");
+		}
+	}
 
 	@SuppressWarnings("unused")
 	private static class NumberHolder {
@@ -842,13 +868,11 @@ class BeanUtilsTests {
 			this.value = value;
 		}
 
-		@Nullable
-		public Integer getCounter() {
+		public @Nullable Integer getCounter() {
 			return counter;
 		}
 
-		@Nullable
-		public Boolean isFlag() {
+		public @Nullable Boolean isFlag() {
 			return flag;
 		}
 

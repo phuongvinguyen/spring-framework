@@ -18,7 +18,8 @@ package org.springframework.jdbc.datasource.lookup;
 
 import java.util.Map;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
@@ -33,8 +34,8 @@ import org.springframework.util.Assert;
  * <p>This is particularly useful in combination with JTA transaction management
  * (typically through Spring's {@link org.springframework.transaction.jta.JtaTransactionManager}).
  * Standard JTA does not support transaction-specific isolation levels. Some JTA
- * providers support isolation levels as a vendor-specific extension (e.g. WebLogic),
- * which is the preferred way of addressing this. As an alternative (e.g. on WebSphere),
+ * providers support isolation levels as a vendor-specific extension (for example, WebLogic),
+ * which is the preferred way of addressing this. As an alternative (for example, on WebSphere),
  * the target database can be represented through multiple JNDI DataSources, each
  * configured with a different isolation level (for the entire DataSource).
  * {@code IsolationLevelDataSourceRouter} allows to transparently switch to the
@@ -133,8 +134,7 @@ public class IsolationLevelDataSourceRouter extends AbstractRoutingDataSource {
 	}
 
 	@Override
-	@Nullable
-	protected Object determineCurrentLookupKey() {
+	protected @Nullable Object determineCurrentLookupKey() {
 		return TransactionSynchronizationManager.getCurrentTransactionIsolationLevel();
 	}
 

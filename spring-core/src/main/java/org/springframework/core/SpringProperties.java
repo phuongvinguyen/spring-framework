@@ -21,7 +21,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Properties;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Static holder for local Spring properties, i.e. defined at the Spring library level.
@@ -33,7 +33,7 @@ import org.springframework.lang.Nullable;
  *
  * <p>This is an alternative way to set Spring-related system properties such as
  * "spring.getenv.ignore" and "spring.beaninfo.ignore", in particular for scenarios
- * where JVM system properties are locked on the target platform (e.g. WebSphere).
+ * where JVM system properties are locked on the target platform (for example, WebSphere).
  * See {@link #setFlag} for a convenient way to locally set such flags to "true".
  *
  * @author Juergen Hoeller
@@ -97,8 +97,7 @@ public final class SpringProperties {
 	 * @param key the property key
 	 * @return the associated property value, or {@code null} if none found
 	 */
-	@Nullable
-	public static String getProperty(String key) {
+	public static @Nullable String getProperty(String key) {
 		String value = localProperties.getProperty(key);
 		if (value == null) {
 			try {

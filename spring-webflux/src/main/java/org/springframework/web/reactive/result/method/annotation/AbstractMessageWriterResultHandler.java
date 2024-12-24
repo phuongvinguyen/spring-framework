@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -37,7 +38,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.codec.HttpMessageWriter;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
@@ -84,7 +84,7 @@ public abstract class AbstractMessageWriterResultHandler extends HandlerResultHa
 	 * Constructor with an additional {@link ReactiveAdapterRegistry}.
 	 * @param messageWriters for serializing Objects to the response body stream
 	 * @param contentTypeResolver for resolving the requested content type
-	 * @param adapterRegistry for adapting other reactive types (e.g. rx.Observable,
+	 * @param adapterRegistry for adapting other reactive types (for example, rx.Observable,
 	 * rx.Single, etc.) to Flux or Mono
 	 */
 	protected AbstractMessageWriterResultHandler(List<HttpMessageWriter<?>> messageWriters,

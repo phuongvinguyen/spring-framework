@@ -21,7 +21,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -37,7 +38,7 @@ import org.springframework.util.ObjectUtils;
  *
  * <p>For an extended response, an application can also create a subclass with
  * additional properties. Subclasses can use the protected copy constructor to
- * re-create an existing {@code ProblemDetail} instance as the subclass, e.g.
+ * re-create an existing {@code ProblemDetail} instance as the subclass, for example,
  * from an {@code @ControllerAdvice} such as
  * {@link org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler} or
  * {@link org.springframework.web.reactive.result.method.annotation.ResponseEntityExceptionHandler}.
@@ -56,19 +57,15 @@ public class ProblemDetail {
 
 	private URI type = BLANK_TYPE;
 
-	@Nullable
-	private String title;
+	private @Nullable String title;
 
 	private int status;
 
-	@Nullable
-	private String detail;
+	private @Nullable String detail;
 
-	@Nullable
-	private URI instance;
+	private @Nullable URI instance;
 
-	@Nullable
-	private Map<String, Object> properties;
+	private @Nullable Map<String, Object> properties;
 
 
 	/**
@@ -131,8 +128,7 @@ public class ProblemDetail {
 	/**
 	 * Return the configured {@link #setTitle(String) problem title}.
 	 */
-	@Nullable
-	public String getTitle() {
+	public @Nullable String getTitle() {
 		if (this.title == null) {
 			HttpStatus httpStatus = HttpStatus.resolve(this.status);
 			if (httpStatus != null) {
@@ -178,8 +174,7 @@ public class ProblemDetail {
 	/**
 	 * Return the configured {@link #setDetail(String) problem detail}.
 	 */
-	@Nullable
-	public String getDetail() {
+	public @Nullable String getDetail() {
 		return this.detail;
 	}
 
@@ -196,8 +191,7 @@ public class ProblemDetail {
 	/**
 	 * Return the configured {@link #setInstance(URI) problem instance}.
 	 */
-	@Nullable
-	public URI getInstance() {
+	public @Nullable URI getInstance() {
 		return this.instance;
 	}
 
@@ -239,8 +233,7 @@ public class ProblemDetail {
 	 * Otherwise, they are rendered as a {@code "properties"} sub-map.
 	 * @see org.springframework.http.converter.json.ProblemDetailJacksonMixin
 	 */
-	@Nullable
-	public Map<String, Object> getProperties() {
+	public @Nullable Map<String, Object> getProperties() {
 		return this.properties;
 	}
 

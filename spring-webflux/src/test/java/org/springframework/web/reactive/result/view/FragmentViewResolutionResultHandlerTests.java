@@ -33,9 +33,10 @@ import reactor.core.scheduler.Schedulers;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.core.MethodParameter;
+import org.springframework.core.ResolvableType;
 import org.springframework.http.MediaType;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.reactive.BindingContext;
 import org.springframework.web.reactive.HandlerResult;
 import org.springframework.web.reactive.accept.HeaderContentTypeResolver;
@@ -53,6 +54,7 @@ import static org.springframework.web.testfixture.method.ResolvableMethod.on;
  * Tests for {@link Fragment} rendering through {@link ViewResolutionResultHandler}.
  *
  * @author Rossen Stoyanchev
+ * @author Sebastien Deleuze
  */
 public class FragmentViewResolutionResultHandlerTests {
 
@@ -64,9 +66,9 @@ public class FragmentViewResolutionResultHandlerTests {
 	static Stream<Arguments> arguments() {
 		Flux<Fragment> fragmentFlux = Flux.just(fragment1, fragment2).subscribeOn(Schedulers.boundedElastic());
 		return Stream.of(
-				Arguments.of(FragmentsRendering.withPublisher(fragmentFlux).build(),
+				Arguments.of(FragmentsRendering.fragmentsPublisher(fragmentFlux).build(),
 						on(Handler.class).resolveReturnType(FragmentsRendering.class)),
-				Arguments.of(FragmentsRendering.withCollection(List.of(fragment1, fragment2)).build(),
+				Arguments.of(FragmentsRendering.fragments(List.of(fragment1, fragment2)).build(),
 						on(Handler.class).resolveReturnType(FragmentsRendering.class)),
 				Arguments.of(fragmentFlux,
 						on(Handler.class).resolveReturnType(Flux.class, Fragment.class)),
@@ -99,27 +101,11 @@ public class FragmentViewResolutionResultHandlerTests {
 	}
 
 	@Test
-	void renderSse() {
-		MockServerHttpRequest request = MockServerHttpRequest.get("/")
-				.accept(MediaType.TEXT_EVENT_STREAM)
-				.acceptLanguageAsLocales(Locale.ENGLISH)
-				.build();
+	void renderFragmentStream() {
 
-		MockServerWebExchange exchange = MockServerWebExchange.from(request);
-		MockServerHttpResponse response = exchange.getResponse();
-
-		HandlerResult result = new HandlerResult(
-				new Handler(),
-				Flux.just(fragment1, fragment2).subscribeOn(Schedulers.boundedElastic()),
+		testSse(Flux.just(fragment1, fragment2),
 				on(Handler.class).resolveReturnType(Flux.class, Fragment.class),
-				new BindingContext());
-
-		String body = initHandler().handleResult(exchange, result)
-				.then(Mono.defer(response::getBodyAsString))
-				.block(Duration.ofSeconds(60));
-
-		assertThat(response.getHeaders().getContentType()).isEqualTo(MediaType.TEXT_EVENT_STREAM);
-		assertThat(body).isEqualTo("""
+				"""
 				event:fragment1
 				data:<p>
 				data:	Hello Foo
@@ -133,13 +119,62 @@ public class FragmentViewResolutionResultHandlerTests {
 				""");
 	}
 
+	@Test
+	void renderServerSentEventFragmentStream() {
+
+		ServerSentEvent<Fragment> event1 = ServerSentEvent.builder(fragment1).id("id1").event("event1").build();
+		ServerSentEvent<Fragment> event2 = ServerSentEvent.builder(fragment2).id("id2").event("event2").build();
+
+		MethodParameter returnType = on(Handler.class).resolveReturnType(
+				Flux.class, ResolvableType.forClassWithGenerics(ServerSentEvent.class, Fragment.class));
+
+		testSse(Flux.just(event1, event2), returnType,
+				"""
+				id:id1
+				event:event1
+				data:<p>
+				data:	Hello Foo
+				data:</p>
+
+				id:id2
+				event:event2
+				data:<p>
+				data:	Hello Bar
+				data:</p>
+
+				""");
+	}
+
+	private void testSse(Flux<?> dataFlux, MethodParameter returnType, String output) {
+		MockServerHttpRequest request = MockServerHttpRequest.get("/")
+				.accept(MediaType.TEXT_EVENT_STREAM)
+				.acceptLanguageAsLocales(Locale.ENGLISH)
+				.build();
+
+		MockServerWebExchange exchange = MockServerWebExchange.from(request);
+		MockServerHttpResponse response = exchange.getResponse();
+
+		HandlerResult result = new HandlerResult(
+				new Handler(),
+				dataFlux.subscribeOn(Schedulers.boundedElastic()),
+				returnType,
+				new BindingContext());
+
+		String body = initHandler().handleResult(exchange, result)
+				.then(Mono.defer(response::getBodyAsString))
+				.block(Duration.ofSeconds(60));
+
+		assertThat(response.getHeaders().getContentType()).isEqualTo(MediaType.TEXT_EVENT_STREAM);
+		assertThat(body).isEqualTo(output);
+	}
+
 	private ViewResolutionResultHandler initHandler() {
 
 		AnnotationConfigApplicationContext context =
 				new AnnotationConfigApplicationContext(ScriptTemplatingConfiguration.class);
 
-		String prefix = "org/springframework/web/reactive/result/view/script/kotlin/";
-		ScriptTemplateViewResolver viewResolver = new ScriptTemplateViewResolver(prefix, ".kts");
+		String prefix = "org/springframework/web/reactive/result/view/script/jython/";
+		ScriptTemplateViewResolver viewResolver = new ScriptTemplateViewResolver(prefix, ".html");
 		viewResolver.setApplicationContext(context);
 		viewResolver.setSupportedMediaTypes(List.of(MediaType.TEXT_HTML, MediaType.TEXT_EVENT_STREAM));
 
@@ -155,6 +190,8 @@ public class FragmentViewResolutionResultHandlerTests {
 
 		Flux<Fragment> renderFlux() { return null; }
 
+		Flux<ServerSentEvent<Fragment>> renderSseFlux() { return null; }
+
 		List<Fragment> renderList() { return null; }
 
 	}
@@ -166,17 +203,10 @@ public class FragmentViewResolutionResultHandlerTests {
 		@Bean
 		public ScriptTemplateConfigurer kotlinScriptConfigurer() {
 			ScriptTemplateConfigurer configurer = new ScriptTemplateConfigurer();
-			configurer.setEngineName("kotlin");
-			configurer.setScripts("org/springframework/web/reactive/result/view/script/kotlin/render.kts");
+			configurer.setEngineName("jython");
+			configurer.setScripts("org/springframework/web/reactive/result/view/script/jython/render.py");
 			configurer.setRenderFunction("render");
 			return configurer;
-		}
-
-		@Bean
-		public ResourceBundleMessageSource messageSource() {
-			ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
-			messageSource.setBasename("org/springframework/web/reactive/result/view/script/messages");
-			return messageSource;
 		}
 	}
 

@@ -23,8 +23,8 @@ import java.util.Map;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterConfig;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.test.web.servlet.DispatcherServletCustomizer;
 import org.springframework.test.web.servlet.MockMvcBuilder;
 import org.springframework.test.web.servlet.RequestBuilder;
@@ -136,7 +136,7 @@ public interface ConfigurableMockMvcBuilder<B extends ConfigurableMockMvcBuilder
 
 	/**
 	 * Add a {@code MockMvcConfigurer} that automates MockMvc setup and
-	 * configures it for some specific purpose (e.g. security).
+	 * configures it for some specific purpose (for example, security).
 	 * <p>There is a built-in {@link SharedHttpSessionConfigurer} that can be
 	 * used to re-use the HTTP session across requests. 3rd party frameworks
 	 * like Spring Security also use this mechanism to provide configuration

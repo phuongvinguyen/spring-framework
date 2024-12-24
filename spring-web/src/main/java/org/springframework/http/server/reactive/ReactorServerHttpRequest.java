@@ -26,6 +26,7 @@ import io.netty.channel.Channel;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.ssl.SslHandler;
 import org.apache.commons.logging.Log;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.netty.ChannelOperationsId;
 import reactor.netty.Connection;
@@ -37,7 +38,6 @@ import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpLogging;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.support.Netty4HeadersAdapter;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -65,7 +65,8 @@ class ReactorServerHttpRequest extends AbstractServerHttpRequest {
 	public ReactorServerHttpRequest(HttpServerRequest request, NettyDataBufferFactory bufferFactory)
 			throws URISyntaxException {
 
-		super(HttpMethod.valueOf(request.method().name()), ReactorUriHelper.createUri(request), "",
+		super(HttpMethod.valueOf(request.method().name()),
+				ReactorUriHelper.createUri(request), request.forwardedPrefix(),
 				new Netty4HeadersAdapter(request.requestHeaders()));
 		Assert.notNull(bufferFactory, "DataBufferFactory must not be null");
 		this.request = request;
@@ -85,20 +86,17 @@ class ReactorServerHttpRequest extends AbstractServerHttpRequest {
 	}
 
 	@Override
-	@Nullable
-	public InetSocketAddress getLocalAddress() {
+	public @Nullable InetSocketAddress getLocalAddress() {
 		return this.request.hostAddress();
 	}
 
 	@Override
-	@Nullable
-	public InetSocketAddress getRemoteAddress() {
+	public @Nullable InetSocketAddress getRemoteAddress() {
 		return this.request.remoteAddress();
 	}
 
 	@Override
-	@Nullable
-	protected SslInfo initSslInfo() {
+	protected @Nullable SslInfo initSslInfo() {
 		Channel channel = ((Connection) this.request).channel();
 		SslHandler sslHandler = channel.pipeline().get(SslHandler.class);
 		if (sslHandler == null && channel.parent() != null) { // HTTP/2
@@ -123,8 +121,7 @@ class ReactorServerHttpRequest extends AbstractServerHttpRequest {
 	}
 
 	@Override
-	@Nullable
-	protected String initId() {
+	protected @Nullable String initId() {
 		if (this.request instanceof Connection connection) {
 			return connection.channel().id().asShortText() +
 					"-" + logPrefixIndex.incrementAndGet();

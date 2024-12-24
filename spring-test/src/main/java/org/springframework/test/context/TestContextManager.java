@@ -25,8 +25,8 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ReflectionUtils;
@@ -176,7 +176,7 @@ public class TestContextManager {
 	/**
 	 * Get the current {@link TestExecutionListener TestExecutionListeners}
 	 * registered for this {@code TestContextManager}.
-	 * <p>Allows for modifications, e.g. adding a listener to the beginning of the list.
+	 * <p>Allows for modifications, for example, adding a listener to the beginning of the list.
 	 * However, make sure to keep the list stable while actually executing tests.
 	 */
 	public final List<TestExecutionListener> getTestExecutionListeners() {

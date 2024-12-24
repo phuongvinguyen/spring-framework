@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,11 @@ package org.springframework.web.cors.reactive;
 
 import java.net.URI;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -82,7 +83,7 @@ public abstract class CorsUtils {
 		Assert.notNull(actualHost, "Actual request host must not be null");
 		Assert.isTrue(actualPort != -1, "Actual request port must not be undefined");
 
-		UriComponents originUrl = UriComponentsBuilder.fromOriginHeader(origin).build();
+		UriComponents originUrl = UriComponentsBuilder.fromUriString(origin).build();
 		return (actualScheme.equals(originUrl.getScheme()) &&
 				actualHost.equals(originUrl.getHost()) &&
 				actualPort == getPort(originUrl.getScheme(), originUrl.getPort()));

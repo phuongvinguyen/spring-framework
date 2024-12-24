@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,15 @@ import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
 import io.netty.handler.codec.http.HttpHeaders;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
+import org.springframework.util.LinkedCaseInsensitiveMap;
 import org.springframework.util.MultiValueMap;
 
 /**
@@ -35,6 +36,7 @@ import org.springframework.util.MultiValueMap;
  *
  * @author Rossen Stoyanchev
  * @author Sam Brannen
+ * @author Simon Baslé
  * @since 6.1
  */
 public final class Netty4HeadersAdapter implements MultiValueMap<String, String> {
@@ -53,8 +55,7 @@ public final class Netty4HeadersAdapter implements MultiValueMap<String, String>
 
 
 	@Override
-	@Nullable
-	public String getFirst(String key) {
+	public @Nullable String getFirst(String key) {
 		return this.headers.get(key);
 	}
 
@@ -89,7 +90,8 @@ public final class Netty4HeadersAdapter implements MultiValueMap<String, String>
 
 	@Override
 	public Map<String, String> toSingleValueMap() {
-		Map<String, String> singleValueMap = CollectionUtils.newLinkedHashMap(this.headers.size());
+		Map<String, String> singleValueMap = new LinkedCaseInsensitiveMap<>(
+				this.headers.size(), Locale.ROOT);
 		this.headers.entries()
 				.forEach(entry -> {
 					if (!singleValueMap.containsKey(entry.getKey())) {
@@ -122,25 +124,22 @@ public final class Netty4HeadersAdapter implements MultiValueMap<String, String>
 	}
 
 	@Override
-	@Nullable
-	public List<String> get(Object key) {
+	public @Nullable List<String> get(Object key) {
 		if (containsKey(key)) {
 			return this.headers.getAll((String) key);
 		}
 		return null;
 	}
 
-	@Nullable
 	@Override
-	public List<String> put(String key, @Nullable List<String> value) {
+	public @Nullable List<String> put(String key, @Nullable List<String> value) {
 		List<String> previousValues = this.headers.getAll(key);
 		this.headers.set(key, value);
 		return previousValues;
 	}
 
-	@Nullable
 	@Override
-	public List<String> remove(Object key) {
+	public @Nullable List<String> remove(Object key) {
 		if (key instanceof String headerName) {
 			List<String> previousValues = this.headers.getAll(headerName);
 			this.headers.remove(headerName);
@@ -252,8 +251,7 @@ public final class Netty4HeadersAdapter implements MultiValueMap<String, String>
 
 		private final Iterator<String> iterator;
 
-		@Nullable
-		private String currentName;
+		private @Nullable String currentName;
 
 		private HeaderNamesIterator(Iterator<String> iterator) {
 			this.iterator = iterator;

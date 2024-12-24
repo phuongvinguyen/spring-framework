@@ -23,7 +23,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.ObjectUtils;
@@ -42,13 +43,13 @@ import org.springframework.util.StringUtils;
  */
 public class DefaultUriBuilderFactory implements UriBuilderFactory {
 
-	@Nullable
-	private final UriComponentsBuilder baseUri;
+	private final @Nullable UriComponentsBuilder baseUri;
+
+	private UriComponentsBuilder.@Nullable ParserType parserType;
 
 	private EncodingMode encodingMode = EncodingMode.TEMPLATE_AND_VALUES;
 
-	@Nullable
-	private Map<String, Object> defaultUriVariables;
+	private @Nullable Map<String, Object> defaultUriVariables;
 
 	private boolean parsePath = true;
 
@@ -90,6 +91,27 @@ public class DefaultUriBuilderFactory implements UriBuilderFactory {
 	 */
 	public final boolean hasBaseUri() {
 		return (this.baseUri != null);
+	}
+
+	/**
+	 * Set the {@link UriComponentsBuilder.ParserType} to use.
+	 * <p>By default, {@link UriComponentsBuilder} uses the
+	 * {@link UriComponentsBuilder.ParserType#RFC parser type}.
+	 * @param parserType the parser type
+	 * @since 6.2
+	 * @see UriComponentsBuilder.ParserType
+	 * @see UriComponentsBuilder#fromUriString(String, UriComponentsBuilder.ParserType)
+	 */
+	public void setParserType(UriComponentsBuilder.ParserType parserType) {
+		this.parserType = parserType;
+	}
+
+	/**
+	 * Return the configured parser type.
+	 * @since 6.2
+	 */
+	public UriComponentsBuilder.@Nullable ParserType getParserType() {
+		return this.parserType;
 	}
 
 	/**
@@ -265,18 +287,24 @@ public class DefaultUriBuilderFactory implements UriBuilderFactory {
 				result = (baseUri != null ? baseUri.cloneBuilder() : UriComponentsBuilder.newInstance());
 			}
 			else if (baseUri != null) {
-				UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uriTemplate);
+				UriComponentsBuilder builder = parseUri(uriTemplate);
 				UriComponents uri = builder.build();
 				result = (uri.getHost() == null ? baseUri.cloneBuilder().uriComponents(uri) : builder);
 			}
 			else {
-				result = UriComponentsBuilder.fromUriString(uriTemplate);
+				result = parseUri(uriTemplate);
 			}
 			if (encodingMode.equals(EncodingMode.TEMPLATE_AND_VALUES)) {
 				result.encode();
 			}
 			parsePathIfNecessary(result);
 			return result;
+		}
+
+		private UriComponentsBuilder parseUri(String uriTemplate) {
+			return (getParserType() != null ?
+					UriComponentsBuilder.fromUriString(uriTemplate, getParserType()) :
+					UriComponentsBuilder.fromUriString(uriTemplate));
 		}
 
 		private void parsePathIfNecessary(UriComponentsBuilder result) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -38,7 +39,6 @@ import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.annotation.MergedAnnotation.Adapt;
 import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.core.type.AnnotationMetadata;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
@@ -51,11 +51,8 @@ import org.springframework.util.StringUtils;
  * {@link org.springframework.stereotype.Repository @Repository}) are
  * themselves annotated with {@code @Component}.
  *
- * <p>Also supports Jakarta EE's {@link jakarta.annotation.ManagedBean} and
- * JSR-330's {@link jakarta.inject.Named} annotations (as well as their pre-Jakarta
- * {@code javax.annotation.ManagedBean} and {@code javax.inject.Named} equivalents),
- * if available. Note that Spring component annotations always override such
- * standard annotations.
+ * <p>Also supports JSR-330's {@link jakarta.inject.Named} annotation if available.
+ * Note that Spring component annotations always override such standard annotations.
  *
  * <p>If the annotation's value doesn't indicate a bean name, an appropriate
  * name will be built based on the short name of the class (with the first
@@ -122,8 +119,7 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 	 * @param annotatedDef the annotation-aware bean definition
 	 * @return the bean name, or {@code null} if none is found
 	 */
-	@Nullable
-	protected String determineBeanNameFromAnnotation(AnnotatedBeanDefinition annotatedDef) {
+	protected @Nullable String determineBeanNameFromAnnotation(AnnotatedBeanDefinition annotatedDef) {
 		AnnotationMetadata metadata = annotatedDef.getMetadata();
 
 		String beanName = getExplicitBeanName(metadata);
@@ -188,8 +184,7 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 	 * @since 6.1
 	 * @see org.springframework.stereotype.Component#value()
 	 */
-	@Nullable
-	private String getExplicitBeanName(AnnotationMetadata metadata) {
+	private @Nullable String getExplicitBeanName(AnnotationMetadata metadata) {
 		List<String> names = metadata.getAnnotations().stream(COMPONENT_ANNOTATION_CLASSNAME)
 				.map(annotation -> annotation.getString(MergedAnnotation.VALUE))
 				.filter(StringUtils::hasText)
@@ -219,10 +214,7 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 			Set<String> metaAnnotationTypes, Map<String, Object> attributes) {
 
 		boolean isStereotype = metaAnnotationTypes.contains(COMPONENT_ANNOTATION_CLASSNAME) ||
-				annotationType.equals("jakarta.annotation.ManagedBean") ||
-				annotationType.equals("javax.annotation.ManagedBean") ||
-				annotationType.equals("jakarta.inject.Named") ||
-				annotationType.equals("javax.inject.Named");
+				annotationType.equals("jakarta.inject.Named");
 
 		return (isStereotype && attributes.containsKey("value"));
 	}
@@ -241,7 +233,7 @@ public class AnnotationBeanNameGenerator implements BeanNameGenerator {
 	/**
 	 * Derive a default bean name from the given bean definition.
 	 * <p>The default implementation simply builds a decapitalized version
-	 * of the short class name: e.g. "mypackage.MyJdbcDao" &rarr; "myJdbcDao".
+	 * of the short class name: for example, "mypackage.MyJdbcDao" &rarr; "myJdbcDao".
 	 * <p>Note that inner classes will thus have names of the form
 	 * "outerClassName.InnerClassName", which because of the period in the
 	 * name may be an issue if you are autowiring by name.

@@ -1,10 +1,8 @@
 /**
  * Classes supporting the org.springframework.ui.context package.
- * Provides support classes for specialized UI contexts, e.g. for web UIs.
+ * Provides support classes for specialized UI contexts, for example, for web UIs.
  */
-@NonNullApi
-@NonNullFields
+@NullMarked
 package org.springframework.ui.context.support;
 
-import org.springframework.lang.NonNullApi;
-import org.springframework.lang.NonNullFields;
+import org.jspecify.annotations.NullMarked;

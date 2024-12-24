@@ -22,29 +22,45 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.mockito.Mockito;
-
+import org.springframework.core.annotation.AliasFor;
 import org.springframework.test.context.bean.override.BeanOverride;
 
 /**
- * Mark a field to trigger a bean override using a Mockito spy, which will wrap
- * the original instance.
+ * {@code @MockitoSpyBean} is an annotation that can be applied to a non-static
+ * field in a test class to override a bean in the test's
+ * {@link org.springframework.context.ApplicationContext ApplicationContext}
+ * with a Mockito spy that wraps the original bean instance.
  *
- * <p>If no explicit {@link #name()} is specified, a target bean is selected
- * according to the class of the annotated field, and there must be exactly one
- * such candidate bean. A {@code @Qualifier} annotation can be used to help
- * disambiguate.
- * If a {@link #name()} is specified, it is required that a target bean of that
- * name has been previously registered in the application context.
+ * <p>By default, the bean to spy is inferred from the type of the annotated
+ * field. If multiple candidates exist, a {@code @Qualifier} annotation can be
+ * used to help disambiguate. In the absence of a {@code @Qualifier} annotation,
+ * the name of the annotated field will be used as a fallback qualifier.
+ * Alternatively, you can explicitly specify a bean name to spy by setting the
+ * {@link #value() value} or {@link #name() name} attribute. If a bean name is
+ * specified, it is required that a target bean with that name has been previously
+ * registered in the application context.
  *
- * <p>Dependencies that are known to the application context but are not beans
- * (such as those
+ * <p>A spy cannot be created for components which are known to the application
+ * context but are not beans &mdash; for example, components
  * {@link org.springframework.beans.factory.config.ConfigurableListableBeanFactory#registerResolvableDependency(Class, Object)
- * registered directly}) will not be found.
+ * registered directly} as resolvable dependencies.
+ *
+ * <p><strong>NOTE</strong>: Only <em>singleton</em> beans can be spied. Any attempt
+ * to create a spy for a non-singleton bean will result in an exception. When
+ * creating a spy for a {@link org.springframework.beans.factory.FactoryBean FactoryBean},
+ * a spy will be created for the object created by the {@code FactoryBean}, not
+ * for the {@code FactoryBean} itself.
+ *
+ * <p>There are no restrictions on the visibility of a {@code @MockitoSpyBean} field.
+ * Such fields can therefore be {@code public}, {@code protected}, package-private
+ * (default visibility), or {@code private} depending on the needs or coding
+ * practices of the project.
  *
  * @author Simon Baslé
+ * @author Sam Brannen
  * @since 6.2
- * @see MockitoBean
+ * @see org.springframework.test.context.bean.override.mockito.MockitoBean @MockitoBean
+ * @see org.springframework.test.context.bean.override.convention.TestBean @TestBean
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
@@ -53,11 +69,22 @@ import org.springframework.test.context.bean.override.BeanOverride;
 public @interface MockitoSpyBean {
 
 	/**
-	 * The name of the bean to spy.
-	 * <p>If left unspecified, the bean to override is selected according to
-	 * the annotated field's type.
-	 * @return the name of the spied bean
+	 * Alias for {@link #name()}.
+	 * <p>Intended to be used when no other attributes are needed &mdash; for
+	 * example, {@code @MockitoSpyBean("customBeanName")}.
+	 * @see #name()
 	 */
+	@AliasFor("name")
+	String value() default "";
+
+	/**
+	 * Name of the bean to spy.
+	 * <p>If left unspecified, the bean to spy is selected according to the
+	 * annotated field's type, taking qualifiers into account if necessary. See
+	 * the {@linkplain MockitoSpyBean class-level documentation} for details.
+	 * @see #value()
+	 */
+	@AliasFor("value")
 	String name() default "";
 
 	/**
@@ -67,18 +94,5 @@ public @interface MockitoSpyBean {
 	 * @return the reset mode
 	 */
 	MockReset reset() default MockReset.AFTER;
-
-	/**
-	 * Indicates that Mockito methods such as {@link Mockito#verify(Object)
-	 * verify(mock)} should use the {@code target} of AOP advised beans,
-	 * rather than the proxy itself.
-	 * <p>Defaults to {@code true}.
-	 * <p>If set to {@code false} you may need to use the result of
-	 * {@link org.springframework.test.util.AopTestUtils#getUltimateTargetObject(Object)
-	 * AopTestUtils.getUltimateTargetObject(...)} when calling Mockito methods.
-	 * @return {@code true} if the target of AOP advised beans is used, or
-	 * {@code false} if the proxy is used directly
-	 */
-	boolean proxyTargetAware() default true;
 
 }

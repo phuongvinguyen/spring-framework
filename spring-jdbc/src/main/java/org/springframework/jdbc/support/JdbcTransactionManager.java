@@ -20,9 +20,10 @@ import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.lang.Nullable;
 
 /**
  * {@link JdbcAccessor}-aligned subclass of the plain {@link DataSourceTransactionManager},
@@ -31,7 +32,7 @@ import org.springframework.lang.Nullable;
  * which applies the same {@link SQLExceptionTranslator} infrastructure by default.
  *
  * <p>Exception translation is specifically relevant for commit steps in serializable
- * transactions (e.g. on Postgres) where concurrency failures may occur late on commit.
+ * transactions (for example, on Postgres) where concurrency failures may occur late on commit.
  * This allows for throwing {@link org.springframework.dao.ConcurrencyFailureException} to
  * callers instead of {@link org.springframework.transaction.TransactionSystemException}.
  *
@@ -52,8 +53,7 @@ import org.springframework.lang.Nullable;
 @SuppressWarnings("serial")
 public class JdbcTransactionManager extends DataSourceTransactionManager {
 
-	@Nullable
-	private volatile SQLExceptionTranslator exceptionTranslator;
+	private volatile @Nullable SQLExceptionTranslator exceptionTranslator;
 
 	private boolean lazyInit = true;
 

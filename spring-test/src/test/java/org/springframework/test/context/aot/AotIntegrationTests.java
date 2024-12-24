@@ -42,6 +42,7 @@ import org.springframework.aot.generate.GeneratedFiles.Kind;
 import org.springframework.aot.generate.InMemoryGeneratedFiles;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.test.generate.CompilerFiles;
+import org.springframework.context.aot.AbstractAotProcessor;
 import org.springframework.core.test.tools.CompileWithForkedClassLoader;
 import org.springframework.core.test.tools.TestCompiler;
 import org.springframework.test.context.aot.samples.basic.BasicSpringJupiterImportedConfigTests;
@@ -96,7 +97,16 @@ class AotIntegrationTests extends AbstractAotTests {
 		// AOT BUILD-TIME: PROCESSING
 		InMemoryGeneratedFiles generatedFiles = new InMemoryGeneratedFiles();
 		TestContextAotGenerator generator = new TestContextAotGenerator(generatedFiles, new RuntimeHints());
-		generator.processAheadOfTime(testClasses);
+		try {
+			// Emulate AbstractAotProcessor.process().
+			System.setProperty(AbstractAotProcessor.AOT_PROCESSING, "true");
+
+			generator.processAheadOfTime(testClasses);
+		}
+		finally {
+			// Emulate AbstractAotProcessor.process().
+			System.clearProperty(AbstractAotProcessor.AOT_PROCESSING);
+		}
 
 		List<String> sourceFiles = generatedFiles.getGeneratedFiles(Kind.SOURCE).keySet().stream().toList();
 		assertThat(sourceFiles).containsExactlyInAnyOrder(expectedSourceFilesForBasicSpringTests);
@@ -145,11 +155,20 @@ class AotIntegrationTests extends AbstractAotTests {
 		runEndToEndTests(testClasses, false);
 	}
 
+	@Test
+	void endToEndTestsForBeanOverrides() {
+		List<Class<?>> testClasses = createTestClassScanner()
+				.scan("org.springframework.test.context.bean.override")
+				.filter(clazz -> clazz.getSimpleName().endsWith("Tests"))
+				.toList();
+		runEndToEndTests(testClasses, true);
+	}
+
 	@Disabled("Comment out to run selected integration tests in AOT mode")
 	@Test
 	void endToEndTestsForSelectedTestClasses() {
 		List<Class<?>> testClasses = List.of(
-				org.springframework.test.context.bean.override.convention.TestBeanForByNameLookupIntegrationTests.class,
+				org.springframework.test.context.bean.override.easymock.EasyMockBeanIntegrationTests.class,
 				org.springframework.test.context.bean.override.mockito.MockitoBeanForByNameLookupIntegrationTests.class,
 				org.springframework.test.context.junit4.SpringJUnit4ClassRunnerAppCtxTests.class,
 				org.springframework.test.context.junit4.ParameterizedDependencyInjectionTests.class
@@ -159,10 +178,20 @@ class AotIntegrationTests extends AbstractAotTests {
 	}
 
 	private void runEndToEndTests(List<Class<?>> testClasses, boolean failOnError) {
-		// AOT BUILD-TIME: PROCESSING
 		InMemoryGeneratedFiles generatedFiles = new InMemoryGeneratedFiles();
 		TestContextAotGenerator generator = new TestContextAotGenerator(generatedFiles, new RuntimeHints(), failOnError);
-		generator.processAheadOfTime(testClasses.stream());
+
+		// AOT BUILD-TIME: PROCESSING
+		try {
+			// Emulate AbstractAotProcessor.process().
+			System.setProperty(AbstractAotProcessor.AOT_PROCESSING, "true");
+
+			generator.processAheadOfTime(testClasses.stream());
+		}
+		finally {
+			// Emulate AbstractAotProcessor.process().
+			System.clearProperty(AbstractAotProcessor.AOT_PROCESSING);
+		}
 
 		// AOT BUILD-TIME: COMPILATION
 		TestCompiler.forSystem().with(CompilerFiles.from(generatedFiles))

@@ -21,7 +21,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.MultiValueMap;
 
 /**
@@ -166,7 +167,7 @@ public interface UriBuilder {
 	 * Append the given query parameter. Both the parameter name and values may
 	 * contain URI template variables to be expanded later from values. If no
 	 * values are given, the resulting URI will contain the query parameter name
-	 * only, e.g. {@code "?foo"} instead of {@code "?foo=bar"}.
+	 * only, for example, {@code "?foo"} instead of {@code "?foo=bar"}.
 	 * <p><strong>Note:</strong> encoding, if applied, will only encode characters
 	 * that are illegal in a query parameter name or value such as {@code "="}
 	 * or {@code "&"}. All others that are legal as per syntax rules in

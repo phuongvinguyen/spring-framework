@@ -16,9 +16,10 @@
 
 package org.springframework.web.reactive;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ResolvableType;
-import org.springframework.lang.Nullable;
 import org.springframework.ui.Model;
 import org.springframework.util.Assert;
 
@@ -32,15 +33,13 @@ public class HandlerResult {
 
 	private final Object handler;
 
-	@Nullable
-	private final Object returnValue;
+	private final @Nullable Object returnValue;
 
 	private final ResolvableType returnType;
 
 	private final BindingContext bindingContext;
 
-	@Nullable
-	private DispatchExceptionHandler exceptionHandler;
+	private @Nullable DispatchExceptionHandler exceptionHandler;
 
 
 	/**
@@ -82,13 +81,12 @@ public class HandlerResult {
 	/**
 	 * Return the value returned from the handler, if any.
 	 */
-	@Nullable
-	public Object getReturnValue() {
+	public @Nullable Object getReturnValue() {
 		return this.returnValue;
 	}
 
 	/**
-	 * Return the type of the value returned from the handler -- e.g. the return
+	 * Return the type of the value returned from the handler -- for example, the return
 	 * type declared on a controller method's signature. Also see
 	 * {@link #getReturnTypeSource()} to obtain the underlying
 	 * {@link MethodParameter} for the return type.
@@ -137,8 +135,7 @@ public class HandlerResult {
 	 * configured} exception handler.
 	 * @since 6.0
 	 */
-	@Nullable
-	public DispatchExceptionHandler getExceptionHandler() {
+	public @Nullable DispatchExceptionHandler getExceptionHandler() {
 		return this.exceptionHandler;
 	}
 

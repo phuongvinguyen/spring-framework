@@ -21,8 +21,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.task.AsyncTaskExecutor;
-import org.springframework.lang.Nullable;
 import org.springframework.web.context.request.async.CallableProcessingInterceptor;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.context.request.async.DeferredResultProcessingInterceptor;
@@ -35,11 +36,9 @@ import org.springframework.web.context.request.async.DeferredResultProcessingInt
  */
 public class AsyncSupportConfigurer {
 
-	@Nullable
-	private AsyncTaskExecutor taskExecutor;
+	private @Nullable AsyncTaskExecutor taskExecutor;
 
-	@Nullable
-	private Long timeout;
+	private @Nullable Long timeout;
 
 	private final List<CallableProcessingInterceptor> callableInterceptors = new ArrayList<>();
 
@@ -51,7 +50,7 @@ public class AsyncSupportConfigurer {
 	 * <ol>
 	 * <li>Handle {@link Callable} controller method return values.
 	 * <li>Perform blocking writes when streaming to the response
-	 * through a reactive (e.g. Reactor, RxJava) controller method return value.
+	 * through a reactive (for example, Reactor, RxJava) controller method return value.
 	 * </ol>
 	 * <p>If your application has controllers with such return types, please
 	 * configure an {@link AsyncTaskExecutor} as the one used by default is not
@@ -101,13 +100,11 @@ public class AsyncSupportConfigurer {
 	}
 
 
-	@Nullable
-	protected AsyncTaskExecutor getTaskExecutor() {
+	protected @Nullable AsyncTaskExecutor getTaskExecutor() {
 		return this.taskExecutor;
 	}
 
-	@Nullable
-	protected Long getTimeout() {
+	protected @Nullable Long getTimeout() {
 		return this.timeout;
 	}
 

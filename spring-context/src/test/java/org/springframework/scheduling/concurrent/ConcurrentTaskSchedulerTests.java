@@ -31,6 +31,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.TriggerContext;
 import org.springframework.util.ErrorHandler;
@@ -51,9 +52,8 @@ class ConcurrentTaskSchedulerTests extends AbstractSchedulingTaskExecutorTests {
 	private final AtomicBoolean taskRun = new AtomicBoolean();
 
 
-	@SuppressWarnings("deprecation")
 	@Override
-	protected org.springframework.core.task.AsyncListenableTaskExecutor buildExecutor() {
+	protected AsyncTaskExecutor buildExecutor() {
 		threadFactory.setThreadNamePrefix(this.threadNamePrefix);
 		scheduler.setTaskDecorator(runnable -> () -> {
 			taskRun.set(true);
@@ -62,8 +62,8 @@ class ConcurrentTaskSchedulerTests extends AbstractSchedulingTaskExecutorTests {
 		return scheduler;
 	}
 
-	@Override
 	@AfterEach
+	@Override
 	void shutdownExecutor() {
 		for (Runnable task : ((ExecutorService) scheduler.getConcurrentExecutor()).shutdownNow()) {
 			if (task instanceof Future) {
@@ -80,22 +80,8 @@ class ConcurrentTaskSchedulerTests extends AbstractSchedulingTaskExecutorTests {
 	}
 
 	@Test
-	@SuppressWarnings("deprecation")
-	@Override
-	void submitListenableRunnableWithGetAfterShutdown() {
-		// decorated Future cannot be cancelled on shutdown with ConcurrentTaskScheduler (see above)
-	}
-
-	@Test
 	@Override
 	void submitCallableWithGetAfterShutdown() {
-		// decorated Future cannot be cancelled on shutdown with ConcurrentTaskScheduler (see above)
-	}
-
-	@Test
-	@SuppressWarnings("deprecation")
-	@Override
-	void submitListenableCallableWithGetAfterShutdown() {
 		// decorated Future cannot be cancelled on shutdown with ConcurrentTaskScheduler (see above)
 	}
 

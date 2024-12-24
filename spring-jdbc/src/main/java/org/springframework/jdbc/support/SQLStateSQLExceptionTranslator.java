@@ -19,6 +19,8 @@ package org.springframework.jdbc.support;
 import java.sql.SQLException;
 import java.util.Set;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -28,7 +30,6 @@ import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.jdbc.BadSqlGrammarException;
-import org.springframework.lang.Nullable;
 
 /**
  * {@link SQLExceptionTranslator} implementation that analyzes the SQL state in
@@ -72,8 +73,8 @@ public class SQLStateSQLExceptionTranslator extends AbstractFallbackSQLException
 
 	private static final Set<String> DATA_ACCESS_RESOURCE_FAILURE_CODES = Set.of(
 			"08",  // Connection exception
-			"53",  // PostgreSQL: insufficient resources (e.g. disk full)
-			"54",  // PostgreSQL: program limit exceeded (e.g. statement too complex)
+			"53",  // PostgreSQL: insufficient resources (for example, disk full)
+			"54",  // PostgreSQL: program limit exceeded (for example, statement too complex)
 			"57",  // DB2: out-of-memory exception / database not started
 			"58"   // DB2: unexpected system error
 		);
@@ -99,8 +100,7 @@ public class SQLStateSQLExceptionTranslator extends AbstractFallbackSQLException
 
 
 	@Override
-	@Nullable
-	protected DataAccessException doTranslate(String task, @Nullable String sql, SQLException ex) {
+	protected @Nullable DataAccessException doTranslate(String task, @Nullable String sql, SQLException ex) {
 		// First, the getSQLState check...
 		String sqlState = getSqlState(ex);
 		if (sqlState != null && sqlState.length() >= 2) {
@@ -149,8 +149,7 @@ public class SQLStateSQLExceptionTranslator extends AbstractFallbackSQLException
 	 * is to be extracted
 	 * @return the SQL state code
 	 */
-	@Nullable
-	private String getSqlState(SQLException ex) {
+	private @Nullable String getSqlState(SQLException ex) {
 		String sqlState = ex.getSQLState();
 		if (sqlState == null) {
 			SQLException nestedEx = ex.getNextException();

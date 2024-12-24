@@ -25,6 +25,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Flow;
 import java.util.function.Function;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.FlowAdapters;
 import org.reactivestreams.Publisher;
 import reactor.adapter.JdkFlowAdapter;
@@ -33,7 +34,6 @@ import reactor.blockhound.integration.BlockHoundIntegration;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ConcurrentReferenceHashMap;
 import org.springframework.util.ReflectionUtils;
@@ -42,7 +42,7 @@ import org.springframework.util.ReflectionUtils;
  * A registry of adapters to adapt Reactive Streams {@link Publisher} to/from various
  * async/reactive types such as {@code CompletableFuture}, RxJava {@code Flowable}, etc.
  * This is designed to complement Spring's Reactor {@code Mono}/{@code Flux} support while
- * also being usable without Reactor, e.g. just for {@code org.reactivestreams} bridging.
+ * also being usable without Reactor, for example, just for {@code org.reactivestreams} bridging.
  *
  * <p>By default, depending on classpath availability, adapters are registered for Reactor
  * (including {@code CompletableFuture} and {@code Flow.Publisher} adapters), RxJava 3,
@@ -56,8 +56,7 @@ import org.springframework.util.ReflectionUtils;
  */
 public class ReactiveAdapterRegistry {
 
-	@Nullable
-	private static volatile ReactiveAdapterRegistry sharedInstance;
+	private static volatile @Nullable ReactiveAdapterRegistry sharedInstance;
 
 	private static final boolean reactiveStreamsPresent;
 
@@ -174,8 +173,7 @@ public class ReactiveAdapterRegistry {
 	 * Get the adapter for the given reactive type.
 	 * @return the corresponding adapter, or {@code null} if none available
 	 */
-	@Nullable
-	public ReactiveAdapter getAdapter(Class<?> reactiveType) {
+	public @Nullable ReactiveAdapter getAdapter(Class<?> reactiveType) {
 		return getAdapter(reactiveType, null);
 	}
 
@@ -188,8 +186,7 @@ public class ReactiveAdapterRegistry {
 	 * (i.e. to adapt from; may be {@code null} if the reactive type is specified)
 	 * @return the corresponding adapter, or {@code null} if none available
 	 */
-	@Nullable
-	public ReactiveAdapter getAdapter(@Nullable Class<?> reactiveType, @Nullable Object source) {
+	public @Nullable ReactiveAdapter getAdapter(@Nullable Class<?> reactiveType, @Nullable Object source) {
 		if (this.adapters.isEmpty()) {
 			return null;
 		}
@@ -441,10 +438,13 @@ public class ReactiveAdapterRegistry {
 		public void applyTo(BlockHound.Builder builder) {
 			// Avoid hard references potentially anywhere in spring-core (no need for structural dependency)
 
-			String className = "org.springframework.util.ConcurrentReferenceHashMap$Segment";
-			builder.allowBlockingCallsInside(className, "doTask");
-			builder.allowBlockingCallsInside(className, "clear");
-			builder.allowBlockingCallsInside(className, "restructure");
+			String segmentClassName = "org.springframework.util.ConcurrentReferenceHashMap$Segment";
+			builder.allowBlockingCallsInside(segmentClassName, "doTask");
+			builder.allowBlockingCallsInside(segmentClassName, "clear");
+			builder.allowBlockingCallsInside(segmentClassName, "restructure");
+
+			String referenceManagerClassName = "org.springframework.util.ConcurrentReferenceHashMap$ReferenceManager";
+			builder.allowBlockingCallsInside(referenceManagerClassName, "pollForPurge");
 		}
 	}
 

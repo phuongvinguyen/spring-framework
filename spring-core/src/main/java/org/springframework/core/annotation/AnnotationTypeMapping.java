@@ -33,9 +33,9 @@ import java.util.function.Predicate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.annotation.AnnotationTypeMapping.MirrorSets.MirrorSet;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
@@ -69,9 +69,10 @@ final class AnnotationTypeMapping {
 
 	private static final MirrorSet[] EMPTY_MIRROR_SETS = new MirrorSet[0];
 
+	private static final int[] EMPTY_INT_ARRAY = new int[0];
 
-	@Nullable
-	private final AnnotationTypeMapping source;
+
+	private final @Nullable AnnotationTypeMapping source;
 
 	private final AnnotationTypeMapping root;
 
@@ -81,8 +82,7 @@ final class AnnotationTypeMapping {
 
 	private final List<Class<? extends Annotation>> metaTypes;
 
-	@Nullable
-	private final Annotation annotation;
+	private final @Nullable Annotation annotation;
 
 	private final AttributeMethods attributes;
 
@@ -320,7 +320,7 @@ final class AnnotationTypeMapping {
 				logger.isWarnEnabled()) {
 			logger.warn("""
 					Support for convention-based annotation attribute overrides is deprecated \
-					and will be removed in Spring Framework 6.2. Please annotate the following \
+					and will be removed in Spring Framework 7.0. Please annotate the following \
 					attributes in @%s with appropriate @AliasFor declarations: %s"""
 						.formatted(rootAnnotationTypeName, conventionMappedAttributes));
 		}
@@ -479,8 +479,7 @@ final class AnnotationTypeMapping {
 	 * Get the source of the mapping or {@code null}.
 	 * @return the source of the mapping
 	 */
-	@Nullable
-	AnnotationTypeMapping getSource() {
+	@Nullable AnnotationTypeMapping getSource() {
 		return this.source;
 	}
 
@@ -509,8 +508,7 @@ final class AnnotationTypeMapping {
 	 * meta-annotation, or {@code null} if this is the root mapping.
 	 * @return the source annotation of the mapping
 	 */
-	@Nullable
-	Annotation getAnnotation() {
+	@Nullable Annotation getAnnotation() {
 		return this.annotation;
 	}
 
@@ -558,8 +556,7 @@ final class AnnotationTypeMapping {
 	 * also be considered.
 	 * @return the mapped annotation value, or {@code null}
 	 */
-	@Nullable
-	Object getMappedAnnotationValue(int attributeIndex, boolean metaAnnotationsOnly) {
+	@Nullable Object getMappedAnnotationValue(int attributeIndex, boolean metaAnnotationsOnly) {
 		int mappedIndex = this.annotationValueMappings[attributeIndex];
 		if (mappedIndex == -1) {
 			return null;
@@ -606,6 +603,9 @@ final class AnnotationTypeMapping {
 
 
 	private static int[] filledIntArray(int size) {
+		if (size == 0) {
+			return EMPTY_INT_ARRAY;
+		}
 		int[] array = new int[size];
 		Arrays.fill(array, -1);
 		return array;
@@ -684,7 +684,7 @@ final class AnnotationTypeMapping {
 		private final MirrorSet[] assigned;
 
 		MirrorSets() {
-			this.assigned = new MirrorSet[attributes.size()];
+			this.assigned = attributes.size() > 0 ? new MirrorSet[attributes.size()] : EMPTY_MIRROR_SETS;
 			this.mirrorSets = EMPTY_MIRROR_SETS;
 		}
 
@@ -722,12 +722,14 @@ final class AnnotationTypeMapping {
 			return this.mirrorSets[index];
 		}
 
-		@Nullable
-		MirrorSet getAssigned(int attributeIndex) {
+		@Nullable MirrorSet getAssigned(int attributeIndex) {
 			return this.assigned[attributeIndex];
 		}
 
 		int[] resolve(@Nullable Object source, @Nullable Object annotation, ValueExtractor valueExtractor) {
+			if (attributes.size() == 0) {
+				return EMPTY_INT_ARRAY;
+			}
 			int[] result = new int[attributes.size()];
 			for (int i = 0; i < result.length; i++) {
 				result[i] = i;

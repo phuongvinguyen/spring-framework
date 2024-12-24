@@ -20,7 +20,8 @@ import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -29,7 +30,7 @@ import org.springframework.util.ObjectUtils;
  * Abstract base regular expression pointcut bean. JavaBean properties are:
  * <ul>
  * <li>pattern: regular expression for the fully-qualified method names to match.
- * The exact regexp syntax will depend on the subclass (e.g. Perl5 regular expressions)
+ * The exact regexp syntax will depend on the subclass (for example, Perl5 regular expressions)
  * <li>patterns: alternative property taking a String array of patterns.
  * The result will be the union of these patterns.
  * </ul>

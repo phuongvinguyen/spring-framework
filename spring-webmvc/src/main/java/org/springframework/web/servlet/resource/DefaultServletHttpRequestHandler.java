@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.HttpRequestHandler;
@@ -44,7 +44,7 @@ import org.springframework.web.context.ServletContextAware;
  * name specified through the {@link #setDefaultServletName "defaultServletName" property}.
  * In most cases, the {@code defaultServletName} does not need to be set explicitly, as the
  * handler checks at initialization time for the presence of the default Servlet of well-known
- * containers such as Tomcat, Jetty, Resin, WebLogic and WebSphere. However, when running in a
+ * containers such as Tomcat, Jetty, WebLogic and WebSphere. However, when running in a
  * container where the default Servlet's name is not known, or where it has been customized
  * via server configuration, the {@code defaultServletName} will need to be set explicitly.
  *
@@ -60,9 +60,6 @@ public class DefaultServletHttpRequestHandler implements HttpRequestHandler, Ser
 	/** Default Servlet name used by Google App Engine. */
 	private static final String GAE_DEFAULT_SERVLET_NAME = "_ah_default";
 
-	/** Default Servlet name used by Resin. */
-	private static final String RESIN_DEFAULT_SERVLET_NAME = "resin-file";
-
 	/** Default Servlet name used by WebLogic. */
 	private static final String WEBLOGIC_DEFAULT_SERVLET_NAME = "FileServlet";
 
@@ -70,11 +67,9 @@ public class DefaultServletHttpRequestHandler implements HttpRequestHandler, Ser
 	private static final String WEBSPHERE_DEFAULT_SERVLET_NAME = "SimpleFileServlet";
 
 
-	@Nullable
-	private String defaultServletName;
+	private @Nullable String defaultServletName;
 
-	@Nullable
-	private ServletContext servletContext;
+	private @Nullable ServletContext servletContext;
 
 
 	/**
@@ -98,9 +93,6 @@ public class DefaultServletHttpRequestHandler implements HttpRequestHandler, Ser
 			}
 			else if (this.servletContext.getNamedDispatcher(GAE_DEFAULT_SERVLET_NAME) != null) {
 				this.defaultServletName = GAE_DEFAULT_SERVLET_NAME;
-			}
-			else if (this.servletContext.getNamedDispatcher(RESIN_DEFAULT_SERVLET_NAME) != null) {
-				this.defaultServletName = RESIN_DEFAULT_SERVLET_NAME;
 			}
 			else if (this.servletContext.getNamedDispatcher(WEBLOGIC_DEFAULT_SERVLET_NAME) != null) {
 				this.defaultServletName = WEBLOGIC_DEFAULT_SERVLET_NAME;

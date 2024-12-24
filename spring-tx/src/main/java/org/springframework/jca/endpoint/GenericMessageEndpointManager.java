@@ -20,11 +20,11 @@ import jakarta.resource.ResourceException;
 import jakarta.resource.spi.ActivationSpec;
 import jakarta.resource.spi.ResourceAdapter;
 import jakarta.resource.spi.endpoint.MessageEndpointFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.SmartLifecycle;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -87,7 +87,7 @@ import org.springframework.util.Assert;
  * <p>For a different target resource, the configuration would simply point to a
  * different ResourceAdapter and a different ActivationSpec object (which are
  * both specific to the resource provider), and possibly a different message
- * listener (e.g. a CCI {@link jakarta.resource.cci.MessageListener} for a
+ * listener (for example, a CCI {@link jakarta.resource.cci.MessageListener} for a
  * resource adapter which is based on the JCA Common Client Interface).
  *
  * <p>The asynchronous execution strategy can be customized through the
@@ -123,7 +123,7 @@ import org.springframework.util.Assert;
  *
  * <p>Alternatively, check out your resource provider's ActivationSpec object,
  * which should support local transactions through a provider-specific config flag,
- * e.g. ActiveMQActivationSpec's "useRAManagedTransaction" bean property.
+ * for example, ActiveMQActivationSpec's "useRAManagedTransaction" bean property.
  *
  * <pre class="code">
  * &lt;bean class="org.springframework.jca.endpoint.GenericMessageEndpointManager"&gt;
@@ -152,14 +152,11 @@ import org.springframework.util.Assert;
  */
 public class GenericMessageEndpointManager implements SmartLifecycle, InitializingBean, DisposableBean {
 
-	@Nullable
-	private ResourceAdapter resourceAdapter;
+	private @Nullable ResourceAdapter resourceAdapter;
 
-	@Nullable
-	private MessageEndpointFactory messageEndpointFactory;
+	private @Nullable MessageEndpointFactory messageEndpointFactory;
 
-	@Nullable
-	private ActivationSpec activationSpec;
+	private @Nullable ActivationSpec activationSpec;
 
 	private boolean autoStartup = true;
 
@@ -180,8 +177,7 @@ public class GenericMessageEndpointManager implements SmartLifecycle, Initializi
 	/**
 	 * Return the JCA ResourceAdapter to manage endpoints for.
 	 */
-	@Nullable
-	public ResourceAdapter getResourceAdapter() {
+	public @Nullable ResourceAdapter getResourceAdapter() {
 		return this.resourceAdapter;
 	}
 
@@ -200,8 +196,7 @@ public class GenericMessageEndpointManager implements SmartLifecycle, Initializi
 	/**
 	 * Return the JCA MessageEndpointFactory to activate.
 	 */
-	@Nullable
-	public MessageEndpointFactory getMessageEndpointFactory() {
+	public @Nullable MessageEndpointFactory getMessageEndpointFactory() {
 		return this.messageEndpointFactory;
 	}
 
@@ -217,8 +212,7 @@ public class GenericMessageEndpointManager implements SmartLifecycle, Initializi
 	/**
 	 * Return the JCA ActivationSpec to use for activating the endpoint.
 	 */
-	@Nullable
-	public ActivationSpec getActivationSpec() {
+	public @Nullable ActivationSpec getActivationSpec() {
 		return this.activationSpec;
 	}
 

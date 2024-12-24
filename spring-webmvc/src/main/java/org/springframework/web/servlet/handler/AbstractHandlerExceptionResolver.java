@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.Ordered;
 import org.springframework.core.log.LogFormatUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.util.DisconnectedClientHelper;
 
 /**
  * Abstract base class for {@link HandlerExceptionResolver} implementations.
@@ -48,23 +49,25 @@ public abstract class AbstractHandlerExceptionResolver implements HandlerExcepti
 
 	private static final String HEADER_CACHE_CONTROL = "Cache-Control";
 
+	private static final String DISCONNECTED_CLIENT_LOG_CATEGORY =
+			"org.springframework.web.servlet.handler.DisconnectedClient";
+
+	private static final DisconnectedClientHelper disconnectedClientHelper =
+			new DisconnectedClientHelper(DISCONNECTED_CLIENT_LOG_CATEGORY);
+
 
 	/** Logger available to subclasses. */
 	protected final Log logger = LogFactory.getLog(getClass());
 
 	private int order = Ordered.LOWEST_PRECEDENCE;
 
-	@Nullable
-	private Predicate<Object> mappedHandlerPredicate;
+	private @Nullable Predicate<Object> mappedHandlerPredicate;
 
-	@Nullable
-	private Set<?> mappedHandlers;
+	private @Nullable Set<?> mappedHandlers;
 
-	@Nullable
-	private Class<?>[] mappedHandlerClasses;
+	private Class<?> @Nullable [] mappedHandlerClasses;
 
-	@Nullable
-	private Log warnLogger;
+	private @Nullable Log warnLogger;
 
 	private boolean preventResponseCaching = false;
 
@@ -127,8 +130,7 @@ public abstract class AbstractHandlerExceptionResolver implements HandlerExcepti
 	 * Return the {@link #setMappedHandlerClasses(Class[]) configured} mapped
 	 * handler classes.
 	 */
-	@Nullable
-	protected Class<?>[] getMappedHandlerClasses() {
+	protected Class<?> @Nullable [] getMappedHandlerClasses() {
 		return this.mappedHandlerClasses;
 	}
 
@@ -166,14 +168,13 @@ public abstract class AbstractHandlerExceptionResolver implements HandlerExcepti
 	 * to the {@link #doResolveException} template method.
 	 */
 	@Override
-	@Nullable
-	public ModelAndView resolveException(
+	public @Nullable ModelAndView resolveException(
 			HttpServletRequest request, HttpServletResponse response, @Nullable Object handler, Exception ex) {
 
 		if (shouldApplyTo(request, handler)) {
 			prepareResponse(ex, response);
 			ModelAndView result = doResolveException(request, response, handler, ex);
-			if (result != null) {
+			if (result != null && !disconnectedClientHelper.checkAndLogClientDisconnectedException(ex)) {
 				// Print debug message when warn logger is not enabled.
 				if (logger.isDebugEnabled() && (this.warnLogger == null || !this.warnLogger.isWarnEnabled())) {
 					logger.debug(buildLogMessage(ex, request) + (result.isEmpty() ? "" : " to " + result));
@@ -298,8 +299,7 @@ public abstract class AbstractHandlerExceptionResolver implements HandlerExcepti
 	 * @return a corresponding {@code ModelAndView} to forward to,
 	 * or {@code null} for default processing in the resolution chain
 	 */
-	@Nullable
-	protected abstract ModelAndView doResolveException(
+	protected abstract @Nullable ModelAndView doResolveException(
 			HttpServletRequest request, HttpServletResponse response, @Nullable Object handler, Exception ex);
 
 }

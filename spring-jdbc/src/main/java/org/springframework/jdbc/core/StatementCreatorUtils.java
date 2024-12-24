@@ -40,10 +40,10 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.SpringProperties;
 import org.springframework.jdbc.support.SqlValue;
-import org.springframework.lang.Nullable;
 
 /**
  * Utility methods for PreparedStatementSetter/Creator and CallableStatementCreator
@@ -75,7 +75,7 @@ public abstract class StatementCreatorUtils {
 	 * {@link PreparedStatement#setNull} / {@link PreparedStatement#setObject} calls based on
 	 * well-known behavior of common databases.
 	 * <p>Consider switching this flag to "true" if you experience misbehavior at runtime,
-	 * e.g. with connection pool issues in case of an exception thrown from {@code getParameterType}
+	 * for example, with connection pool issues in case of an exception thrown from {@code getParameterType}
 	 * (as reported on JBoss AS 7) or in case of performance problems (as reported on PostgreSQL).
 	 */
 	public static final String IGNORE_GETPARAMETERTYPE_PROPERTY_NAME = "spring.jdbc.getParameterType.ignore";
@@ -85,8 +85,7 @@ public abstract class StatementCreatorUtils {
 
 	private static final Map<Class<?>, Integer> javaTypeToSqlTypeMap = new HashMap<>(64);
 
-	@Nullable
-	static Boolean shouldIgnoreGetParameterType;
+	static @Nullable Boolean shouldIgnoreGetParameterType;
 
 	static {
 		javaTypeToSqlTypeMap.put(boolean.class, Types.BOOLEAN);
@@ -324,7 +323,7 @@ public abstract class StatementCreatorUtils {
 					throw ex;
 				}
 				// Fall back to generic setNull call without SQL type specified
-				// (e.g. for MySQL TIME_WITH_TIMEZONE / TIMESTAMP_WITH_TIMEZONE).
+				// (for example, for MySQL TIME_WITH_TIMEZONE / TIMESTAMP_WITH_TIMEZONE).
 				ps.setNull(paramIndex, Types.NULL);
 			}
 		}
@@ -461,7 +460,7 @@ public abstract class StatementCreatorUtils {
 			}
 			catch (SQLFeatureNotSupportedException ex) {
 				// Fall back to generic setObject call without SQL type specified
-				// (e.g. for MySQL TIME_WITH_TIMEZONE / TIMESTAMP_WITH_TIMEZONE).
+				// (for example, for MySQL TIME_WITH_TIMEZONE / TIMESTAMP_WITH_TIMEZONE).
 				ps.setObject(paramIndex, inValue);
 			}
 		}
@@ -494,7 +493,7 @@ public abstract class StatementCreatorUtils {
 	 * @see DisposableSqlTypeValue#cleanup()
 	 * @see org.springframework.jdbc.core.support.SqlLobValue#cleanup()
 	 */
-	public static void cleanupParameters(@Nullable Object... paramValues) {
+	public static void cleanupParameters(@Nullable Object @Nullable ... paramValues) {
 		if (paramValues != null) {
 			cleanupParameters(Arrays.asList(paramValues));
 		}

@@ -26,29 +26,30 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.core.ResolvableType;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
  * A root bean definition represents the <b>merged bean definition at runtime</b>
  * that backs a specific bean in a Spring BeanFactory. It might have been created
- * from multiple original bean definitions that inherit from each other, e.g.
+ * from multiple original bean definitions that inherit from each other, for example,
  * {@link GenericBeanDefinition GenericBeanDefinitions} from XML declarations.
  * A root bean definition is essentially the 'unified' bean definition view at runtime.
  *
  * <p>Root bean definitions may also be used for <b>registering individual bean
  * definitions in the configuration phase.</b> This is particularly applicable for
- * programmatic definitions derived from factory methods (e.g. {@code @Bean} methods)
- * and instance suppliers (e.g. lambda expressions) which come with extra type metadata
+ * programmatic definitions derived from factory methods (for example, {@code @Bean} methods)
+ * and instance suppliers (for example, lambda expressions) which come with extra type metadata
  * (see {@link #setTargetType(ResolvableType)}/{@link #setResolvedFactoryMethod(Method)}).
  *
  * <p>Note: The preferred choice for bean definitions derived from declarative sources
- * (e.g. XML definitions) is the flexible {@link GenericBeanDefinition} variant.
+ * (for example, XML definitions) is the flexible {@link GenericBeanDefinition} variant.
  * GenericBeanDefinition comes with the advantage that it allows for dynamically
  * defining parent dependencies, not 'hard-coding' the role as a root bean definition,
  * even supporting parent relationship changes in the bean post-processor phase.
@@ -62,11 +63,9 @@ import org.springframework.util.Assert;
 @SuppressWarnings("serial")
 public class RootBeanDefinition extends AbstractBeanDefinition {
 
-	@Nullable
-	private BeanDefinitionHolder decoratedDefinition;
+	private @Nullable BeanDefinitionHolder decoratedDefinition;
 
-	@Nullable
-	private AnnotatedElement qualifiedElement;
+	private @Nullable AnnotatedElement qualifiedElement;
 
 	/** Determines if the definition needs to be re-merged. */
 	volatile boolean stale;
@@ -75,46 +74,37 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 
 	boolean isFactoryMethodUnique;
 
-	@Nullable
-	volatile ResolvableType targetType;
+	volatile @Nullable ResolvableType targetType;
 
 	/** Package-visible field for caching the determined Class of a given bean definition. */
-	@Nullable
-	volatile Class<?> resolvedTargetType;
+	volatile @Nullable Class<?> resolvedTargetType;
 
 	/** Package-visible field for caching if the bean is a factory bean. */
-	@Nullable
-	volatile Boolean isFactoryBean;
+	volatile @Nullable Boolean isFactoryBean;
 
 	/** Package-visible field for caching the return type of a generically typed factory method. */
-	@Nullable
-	volatile ResolvableType factoryMethodReturnType;
+	volatile @Nullable ResolvableType factoryMethodReturnType;
 
 	/** Package-visible field for caching a unique factory method candidate for introspection. */
-	@Nullable
-	volatile Method factoryMethodToIntrospect;
+	volatile @Nullable Method factoryMethodToIntrospect;
 
 	/** Package-visible field for caching a resolved destroy method name (also for inferred). */
-	@Nullable
-	volatile String resolvedDestroyMethodName;
+	volatile @Nullable String resolvedDestroyMethodName;
 
 	/** Common lock for the four constructor fields below. */
 	final Object constructorArgumentLock = new Object();
 
 	/** Package-visible field for caching the resolved constructor or factory method. */
-	@Nullable
-	Executable resolvedConstructorOrFactoryMethod;
+	@Nullable Executable resolvedConstructorOrFactoryMethod;
 
 	/** Package-visible field that marks the constructor arguments as resolved. */
 	boolean constructorArgumentsResolved = false;
 
 	/** Package-visible field for caching fully resolved constructor arguments. */
-	@Nullable
-	Object[] resolvedConstructorArguments;
+	@Nullable Object @Nullable [] resolvedConstructorArguments;
 
 	/** Package-visible field for caching partly prepared constructor arguments. */
-	@Nullable
-	Object[] preparedConstructorArguments;
+	@Nullable Object @Nullable [] preparedConstructorArguments;
 
 	/** Common lock for the two post-processing fields below. */
 	final Object postProcessingLock = new Object();
@@ -123,17 +113,13 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	boolean postProcessed = false;
 
 	/** Package-visible field that indicates a before-instantiation post-processor having kicked in. */
-	@Nullable
-	volatile Boolean beforeInstantiationResolved;
+	volatile @Nullable Boolean beforeInstantiationResolved;
 
-	@Nullable
-	private Set<Member> externallyManagedConfigMembers;
+	private @Nullable Set<Member> externallyManagedConfigMembers;
 
-	@Nullable
-	private Set<String> externallyManagedInitMethods;
+	private @Nullable Set<String> externallyManagedInitMethods;
 
-	@Nullable
-	private Set<String> externallyManagedDestroyMethods;
+	private @Nullable Set<String> externallyManagedDestroyMethods;
 
 
 	/**
@@ -277,8 +263,7 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 
 
 	@Override
-	@Nullable
-	public String getParentName() {
+	public @Nullable String getParentName() {
 		return null;
 	}
 
@@ -299,8 +284,7 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	/**
 	 * Return the target definition that is being decorated by this bean definition, if any.
 	 */
-	@Nullable
-	public BeanDefinitionHolder getDecoratedDefinition() {
+	public @Nullable BeanDefinitionHolder getDecoratedDefinition() {
 		return this.decoratedDefinition;
 	}
 
@@ -320,8 +304,7 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	 * Otherwise, the factory method and target class will be checked.
 	 * @since 4.3.3
 	 */
-	@Nullable
-	public AnnotatedElement getQualifiedElement() {
+	public @Nullable AnnotatedElement getQualifiedElement() {
 		return this.qualifiedElement;
 	}
 
@@ -346,8 +329,7 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	 * (either specified in advance or resolved on first instantiation).
 	 * @since 3.2.2
 	 */
-	@Nullable
-	public Class<?> getTargetType() {
+	public @Nullable Class<?> getTargetType() {
 		if (this.resolvedTargetType != null) {
 			return this.resolvedTargetType;
 		}
@@ -375,7 +357,7 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 		if (returnType != null) {
 			return returnType;
 		}
-		Method factoryMethod = this.factoryMethodToIntrospect;
+		Method factoryMethod = getResolvedFactoryMethod();
 		if (factoryMethod != null) {
 			return ResolvableType.forMethodReturnType(factoryMethod);
 		}
@@ -393,8 +375,7 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	 * (in which case the regular no-arg default constructor will be called)
 	 * @since 5.1
 	 */
-	@Nullable
-	public Constructor<?>[] getPreferredConstructors() {
+	public Constructor<?> @Nullable [] getPreferredConstructors() {
 		Object attribute = getAttribute(PREFERRED_CONSTRUCTORS_ATTRIBUTE);
 		if (attribute == null) {
 			return null;
@@ -451,19 +432,13 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	 * Return the resolved factory method as a Java Method object, if available.
 	 * @return the factory method, or {@code null} if not found or not resolved yet
 	 */
-	@Nullable
-	public Method getResolvedFactoryMethod() {
-		return this.factoryMethodToIntrospect;
-	}
-
-	@Override
-	public void setInstanceSupplier(@Nullable Supplier<?> supplier) {
-		super.setInstanceSupplier(supplier);
-		Method factoryMethod = (supplier instanceof InstanceSupplier<?> instanceSupplier ?
-				instanceSupplier.getFactoryMethod() : null);
-		if (factoryMethod != null) {
-			setResolvedFactoryMethod(factoryMethod);
+	public @Nullable Method getResolvedFactoryMethod() {
+		Method factoryMethod = this.factoryMethodToIntrospect;
+		if (factoryMethod == null &&
+				getInstanceSupplier() instanceof InstanceSupplier<?> instanceSupplier) {
+			factoryMethod = instanceSupplier.getFactoryMethod();
 		}
+		return factoryMethod;
 	}
 
 	/**
@@ -513,8 +488,8 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 
 	/**
 	 * Register an externally managed configuration initialization method &mdash;
-	 * for example, a method annotated with JSR-250's {@code javax.annotation.PostConstruct}
-	 * or Jakarta's {@link jakarta.annotation.PostConstruct} annotation.
+	 * for example, a method annotated with Jakarta's
+	 * {@link jakarta.annotation.PostConstruct} annotation.
 	 * <p>The supplied {@code initMethod} may be a
 	 * {@linkplain Method#getName() simple method name} or a
 	 * {@linkplain org.springframework.util.ClassUtils#getQualifiedMethodName(Method)

@@ -23,8 +23,8 @@ import java.util.function.Supplier;
 
 import io.micrometer.observation.Observation;
 import io.micrometer.observation.ObservationRegistry;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.scheduling.SchedulingAwareRunnable;
 import org.springframework.util.ReflectionUtils;
 
@@ -47,8 +47,7 @@ public class ScheduledMethodRunnable implements SchedulingAwareRunnable {
 
 	private final Method method;
 
-	@Nullable
-	private final String qualifier;
+	private final @Nullable String qualifier;
 
 	private final Supplier<ObservationRegistry> observationRegistrySupplier;
 
@@ -59,7 +58,7 @@ public class ScheduledMethodRunnable implements SchedulingAwareRunnable {
 	 * @param target the target instance to call the method on
 	 * @param method the target method to call
 	 * @param qualifier a qualifier associated with this Runnable,
-	 * e.g. for determining a scheduler to run this scheduled method on
+	 * for example, for determining a scheduler to run this scheduled method on
 	 * @param observationRegistrySupplier a supplier for the observation registry to use
 	 * @since 6.1
 	 */
@@ -109,8 +108,7 @@ public class ScheduledMethodRunnable implements SchedulingAwareRunnable {
 	}
 
 	@Override
-	@Nullable
-	public String getQualifier() {
+	public @Nullable String getQualifier() {
 		return this.qualifier;
 	}
 

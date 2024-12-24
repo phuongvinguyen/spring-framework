@@ -17,9 +17,19 @@
 package org.springframework.http.client.reactive;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Iterator;
+import java.util.List;
 
 import org.apache.hc.client5.http.cookie.Cookie;
+import org.apache.hc.client5.http.cookie.CookieOrigin;
+import org.apache.hc.client5.http.cookie.CookieSpec;
+import org.apache.hc.client5.http.cookie.MalformedCookieException;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.Message;
 import org.reactivestreams.Publisher;
@@ -49,30 +59,70 @@ class HttpComponentsClientHttpResponse extends AbstractClientHttpResponse {
 
 		super(HttpStatusCode.valueOf(message.getHead().getCode()),
 				HttpHeaders.readOnlyHttpHeaders(new HttpComponentsHeadersAdapter(message.getHead())),
-				adaptCookies(context),
+				adaptCookies(message.getHead(), context),
 				Flux.from(message.getBody()).map(dataBufferFactory::wrap)
 		);
 	}
 
-	private static MultiValueMap<String, ResponseCookie> adaptCookies(HttpClientContext context) {
+	private static MultiValueMap<String, ResponseCookie> adaptCookies(
+			HttpResponse response, HttpClientContext context) {
+
 		LinkedMultiValueMap<String, ResponseCookie> result = new LinkedMultiValueMap<>();
-		context.getCookieStore().getCookies().forEach(cookie ->
-				result.add(cookie.getName(),
-						ResponseCookie.fromClientResponse(cookie.getName(), cookie.getValue())
-								.domain(cookie.getDomain())
-								.path(cookie.getPath())
-								.maxAge(getMaxAgeSeconds(cookie))
-								.secure(cookie.isSecure())
-								.httpOnly(cookie.containsAttribute("httponly"))
-								.sameSite(cookie.getAttribute("samesite"))
-								.build()));
+
+		CookieSpec cookieSpec = context.getCookieSpec();
+		if (cookieSpec == null) {
+			return result;
+		}
+
+		CookieOrigin cookieOrigin = context.getCookieOrigin();
+		Iterator<Header> itr = response.headerIterator(HttpHeaders.SET_COOKIE);
+		while (itr.hasNext()) {
+			Header header = itr.next();
+			try {
+				List<Cookie> cookies = cookieSpec.parse(header, cookieOrigin);
+				for (Cookie cookie : cookies) {
+					try {
+						cookieSpec.validate(cookie, cookieOrigin);
+						result.add(cookie.getName(),
+								ResponseCookie.fromClientResponse(cookie.getName(), cookie.getValue())
+										.domain(cookie.getDomain())
+										.path(cookie.getPath())
+										.maxAge(getMaxAgeSeconds(cookie))
+										.secure(cookie.isSecure())
+										.httpOnly(cookie.containsAttribute("httponly"))
+										.sameSite(cookie.getAttribute("samesite"))
+										.build());
+					}
+					catch (final MalformedCookieException ex) {
+						// ignore invalid cookie
+					}
+				}
+			}
+			catch (final MalformedCookieException ex) {
+				// ignore invalid cookie
+			}
+		}
+
 		return result;
 	}
 
 	private static long getMaxAgeSeconds(Cookie cookie) {
+		String expiresAttribute = cookie.getAttribute(Cookie.EXPIRES_ATTR);
 		String maxAgeAttribute = cookie.getAttribute(Cookie.MAX_AGE_ATTR);
-		return (maxAgeAttribute != null ? Long.parseLong(maxAgeAttribute) : -1);
+		if (maxAgeAttribute != null) {
+			return Long.parseLong(maxAgeAttribute);
+		}
+		// only consider expires if max-age is not present
+		else if (expiresAttribute != null) {
+			try {
+				ZonedDateTime expiresDate = ZonedDateTime.parse(expiresAttribute, DateTimeFormatter.RFC_1123_DATE_TIME);
+				return Duration.between(ZonedDateTime.now(expiresDate.getZone()), expiresDate).toSeconds();
+			}
+			catch (DateTimeParseException ex) {
+				// ignore
+			}
+		}
+		return -1;
 	}
-
 
 }

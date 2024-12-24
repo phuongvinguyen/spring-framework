@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2024 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -29,24 +32,48 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.NativeDetector;
 import org.springframework.core.Ordered;
-import org.springframework.lang.Nullable;
 import org.springframework.test.context.TestContext;
 import org.springframework.test.context.support.AbstractTestExecutionListener;
+import org.springframework.util.ClassUtils;
 
 /**
  * {@code TestExecutionListener} that resets any mock beans that have been marked
  * with a {@link MockReset}.
  *
  * @author Phillip Webb
+ * @author Sam Brannen
  * @since 6.2
- * @see MockitoTestExecutionListener
+ * @see MockitoBean @MockitoBean
+ * @see MockitoSpyBean @MockitoSpyBean
  */
 public class MockitoResetTestExecutionListener extends AbstractTestExecutionListener {
 
+	private static final Log logger = LogFactory.getLog(MockitoResetTestExecutionListener.class);
+
 	/**
-	 * Executes before {@link org.springframework.test.context.bean.override.BeanOverrideTestExecutionListener}.
+	 * Boolean flag which tracks whether Mockito is present in the classpath.
+	 * @see #mockitoInitialized
+	 * @see #isEnabled()
+	 */
+	private static final boolean mockitoPresent = ClassUtils.isPresent("org.mockito.Mockito",
+			MockitoResetTestExecutionListener.class.getClassLoader());
+
+	/**
+	 * Boolean flag which tracks whether Mockito has been successfully initialized
+	 * in the current environment.
+	 * <p>Even if {@link #mockitoPresent} evaluates to {@code true}, this flag
+	 * may eventually evaluate to {@code false} &mdash; for example, in a GraalVM
+	 * native image if the necessary reachability metadata has not been registered
+	 * for the {@link org.mockito.plugins.MockMaker} in use.
+	 * @see #mockitoPresent
+	 * @see #isEnabled()
+	 */
+	private static volatile @Nullable Boolean mockitoInitialized;
+
+
+	/**
+	 * Returns {@code Ordered.LOWEST_PRECEDENCE - 100}.
 	 */
 	@Override
 	public int getOrder() {
@@ -54,45 +81,41 @@ public class MockitoResetTestExecutionListener extends AbstractTestExecutionList
 	}
 
 	@Override
-	public void beforeTestMethod(TestContext testContext) throws Exception {
-		if (MockitoTestExecutionListener.mockitoPresent && !NativeDetector.inNativeImage()) {
+	public void beforeTestMethod(TestContext testContext) {
+		if (isEnabled()) {
 			resetMocks(testContext.getApplicationContext(), MockReset.BEFORE);
 		}
 	}
 
 	@Override
-	public void afterTestMethod(TestContext testContext) throws Exception {
-		if (MockitoTestExecutionListener.mockitoPresent && !NativeDetector.inNativeImage()) {
+	public void afterTestMethod(TestContext testContext) {
+		if (isEnabled()) {
 			resetMocks(testContext.getApplicationContext(), MockReset.AFTER);
 		}
 	}
 
-	private void resetMocks(ApplicationContext applicationContext, MockReset reset) {
+
+	private static void resetMocks(ApplicationContext applicationContext, MockReset reset) {
 		if (applicationContext instanceof ConfigurableApplicationContext configurableContext) {
 			resetMocks(configurableContext, reset);
 		}
 	}
 
-	private void resetMocks(ConfigurableApplicationContext applicationContext, MockReset reset) {
+	private static void resetMocks(ConfigurableApplicationContext applicationContext, MockReset reset) {
 		ConfigurableListableBeanFactory beanFactory = applicationContext.getBeanFactory();
-		String[] names = beanFactory.getBeanDefinitionNames();
+		String[] beanNames = beanFactory.getBeanDefinitionNames();
 		Set<String> instantiatedSingletons = new HashSet<>(Arrays.asList(beanFactory.getSingletonNames()));
-		for (String name : names) {
-			BeanDefinition definition = beanFactory.getBeanDefinition(name);
-			if (definition.isSingleton() && instantiatedSingletons.contains(name)) {
-				Object bean = getBean(beanFactory, name);
-				if (bean != null && reset.equals(MockReset.get(bean))) {
+		for (String beanName : beanNames) {
+			BeanDefinition beanDefinition = beanFactory.getBeanDefinition(beanName);
+			if (beanDefinition.isSingleton() && instantiatedSingletons.contains(beanName)) {
+				Object bean = getBean(beanFactory, beanName);
+				if (bean != null && reset == MockReset.get(bean)) {
 					Mockito.reset(bean);
 				}
 			}
 		}
 		try {
-			MockitoBeans mockedBeans = beanFactory.getBean(MockitoBeans.class);
-			for (Object mockedBean : mockedBeans) {
-				if (reset.equals(MockReset.get(mockedBean))) {
-					Mockito.reset(mockedBean);
-				}
-			}
+			beanFactory.getBean(MockitoBeans.class).resetAll(reset);
 		}
 		catch (NoSuchBeanDefinitionException ex) {
 			// Continue
@@ -102,26 +125,58 @@ public class MockitoResetTestExecutionListener extends AbstractTestExecutionList
 		}
 	}
 
-	@Nullable
-	private Object getBean(ConfigurableListableBeanFactory beanFactory, String name) {
+	private static @Nullable Object getBean(ConfigurableListableBeanFactory beanFactory, String beanName) {
 		try {
-			if (isStandardBeanOrSingletonFactoryBean(beanFactory, name)) {
-				return beanFactory.getBean(name);
+			if (isStandardBeanOrSingletonFactoryBean(beanFactory, beanName)) {
+				return beanFactory.getBean(beanName);
 			}
 		}
 		catch (Exception ex) {
 			// Continue
 		}
-		return beanFactory.getSingleton(name);
+		return beanFactory.getSingleton(beanName);
 	}
 
-	private boolean isStandardBeanOrSingletonFactoryBean(ConfigurableListableBeanFactory beanFactory, String name) {
-		String factoryBeanName = BeanFactory.FACTORY_BEAN_PREFIX + name;
+	private static boolean isStandardBeanOrSingletonFactoryBean(BeanFactory beanFactory, String beanName) {
+		String factoryBeanName = BeanFactory.FACTORY_BEAN_PREFIX + beanName;
 		if (beanFactory.containsBean(factoryBeanName)) {
 			FactoryBean<?> factoryBean = (FactoryBean<?>) beanFactory.getBean(factoryBeanName);
 			return factoryBean.isSingleton();
 		}
 		return true;
+	}
+
+	/**
+	 * Determine if this listener is enabled in the current environment.
+	 * @see #mockitoPresent
+	 * @see #mockitoInitialized
+	 */
+	private static boolean isEnabled() {
+		if (!mockitoPresent) {
+			return false;
+		}
+		Boolean enabled = mockitoInitialized;
+		if (enabled == null) {
+			try {
+				// Invoke isMock() on a non-null object to initialize core Mockito classes
+				// in order to reliably determine if this listener is "enabled" both on the
+				// JVM as well as within a GraalVM native image.
+				Mockito.mockingDetails("a string is not a mock").isMock();
+
+				// If we got this far, we assume Mockito is usable in the current environment.
+				enabled = true;
+			}
+			catch (Throwable ex) {
+				enabled = false;
+				if (logger.isDebugEnabled()) {
+					logger.debug("""
+							MockitoResetTestExecutionListener is disabled in the current environment. \
+							See exception for details.""", ex);
+				}
+			}
+			mockitoInitialized = enabled;
+		}
+		return enabled;
 	}
 
 }

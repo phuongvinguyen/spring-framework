@@ -29,9 +29,9 @@ import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ObjectUtils;
@@ -80,18 +80,6 @@ public class JsonPathExpectationsHelper {
 		this.expression = expression;
 		this.jsonPath = JsonPath.compile(this.expression);
 		this.configuration = (configuration != null) ? configuration : Configuration.defaultConfiguration();
-	}
-
-	/**
-	 * Construct a new {@code JsonPathExpectationsHelper}.
-	 * @param expression the {@link JsonPath} expression; never {@code null} or empty
-	 * @param args arguments to parameterize the {@code JsonPath} expression with,
-	 * using formatting specifiers defined in {@link String#format(String, Object...)}
-	 * @deprecated in favor of calling {@link String#formatted(Object...)} upfront
-	 */
-	@Deprecated(since = "6.2", forRemoval = true)
-	public JsonPathExpectationsHelper(String expression, Object... args) {
-		this(expression.formatted(args), (Configuration) null);
 	}
 
 
@@ -342,8 +330,7 @@ public class JsonPathExpectationsHelper {
 	 * @return the result of the evaluation
 	 * @throws AssertionError if the evaluation fails
 	 */
-	@Nullable
-	public Object evaluateJsonPath(String content) {
+	public @Nullable Object evaluateJsonPath(String content) {
 		try {
 			return this.jsonPath.read(content, this.configuration);
 		}
@@ -383,8 +370,7 @@ public class JsonPathExpectationsHelper {
 				context.read(this.expression, new TypeRefAdapter<>(targetType)));
 	}
 
-	@Nullable
-	private Object assertExistsAndReturn(String content) {
+	private @Nullable Object assertExistsAndReturn(String content) {
 		Object value = evaluateJsonPath(content);
 		String reason = "No value at JSON path \"" + this.expression + "\"";
 		AssertionErrors.assertTrue(reason, value != null);

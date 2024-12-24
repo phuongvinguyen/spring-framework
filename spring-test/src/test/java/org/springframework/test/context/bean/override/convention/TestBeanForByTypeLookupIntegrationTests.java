@@ -37,7 +37,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 6.2
  */
 @SpringJUnitConfig
-class TestBeanForByTypeLookupIntegrationTests {
+public class TestBeanForByTypeLookupIntegrationTests {
+
+	@TestBean
+	MessageService messageService;
 
 	@TestBean
 	ExampleService anyNameForService;
@@ -49,6 +52,11 @@ class TestBeanForByTypeLookupIntegrationTests {
 	@TestBean(methodName = "someString2")
 	@CustomQualifier
 	StringBuilder anyNameForStringBuilder2;
+
+
+	static MessageService messageService() {
+		return () -> "mocked nonexistent bean definition";
+	}
 
 	static ExampleService anyNameForService() {
 		return new RealExampleService("Mocked greeting");
@@ -62,6 +70,12 @@ class TestBeanForByTypeLookupIntegrationTests {
 		return new StringBuilder("CustomQualifier TestBean String");
 	}
 
+
+	@Test
+	void overrideIsFoundByTypeForNonexistentBeanDefinition(ApplicationContext ctx) {
+		assertThat(this.messageService).isSameAs(ctx.getBean(MessageService.class));
+		assertThat(this.messageService.getMessage()).isEqualTo("mocked nonexistent bean definition");
+	}
 
 	@Test
 	void overrideIsFoundByType(ApplicationContext ctx) {
@@ -88,7 +102,7 @@ class TestBeanForByTypeLookupIntegrationTests {
 	}
 
 
-	@Configuration
+	@Configuration(proxyBeanMethods = false)
 	static class Config {
 
 		@Bean("example")
@@ -112,6 +126,12 @@ class TestBeanForByTypeLookupIntegrationTests {
 		StringBuilder beanString3() {
 			return new StringBuilder("Prod Three");
 		}
+	}
+
+	@FunctionalInterface
+	public interface MessageService {
+
+		String getMessage();
 	}
 
 }

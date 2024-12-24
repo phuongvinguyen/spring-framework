@@ -18,6 +18,7 @@ package org.springframework.aop.aspectj.annotation;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -34,11 +35,12 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.AjType;
 import org.aspectj.lang.reflect.AjTypeSystem;
 import org.aspectj.lang.reflect.PerClauseKind;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aop.framework.AopConfigException;
 import org.springframework.core.ParameterNameDiscoverer;
+import org.springframework.core.SpringProperties;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.lang.Nullable;
 
 /**
  * Abstract base class for factories that can create Spring AOP Advisors
@@ -58,6 +60,23 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 	private static final Class<?>[] ASPECTJ_ANNOTATION_CLASSES = new Class<?>[] {
 			Pointcut.class, Around.class, Before.class, After.class, AfterReturning.class, AfterThrowing.class};
 
+	private static final String AJC_MAGIC = "ajc$";
+
+	/**
+	 * System property that instructs Spring to ignore ajc-compiled aspects
+	 * for Spring AOP proxying, restoring traditional Spring behavior for
+	 * scenarios where both weaving and AspectJ auto-proxying are enabled.
+	 * <p>The default is "false". Consider switching this to "true" if you
+	 * encounter double execution of your aspects in a given build setup.
+	 * Note that we recommend restructuring your AspectJ configuration to
+	 * avoid such double exposure of an AspectJ aspect to begin with.
+	 * @since 6.1.15
+	 */
+	public static final String IGNORE_AJC_PROPERTY_NAME = "spring.aop.ajc.ignore";
+
+	private static final boolean shouldIgnoreAjcCompiledAspects =
+			SpringProperties.getFlag(IGNORE_AJC_PROPERTY_NAME);
+
 
 	/** Logger available to subclasses. */
 	protected final Log logger = LogFactory.getLog(getClass());
@@ -67,7 +86,8 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 
 	@Override
 	public boolean isAspect(Class<?> clazz) {
-		return (AnnotationUtils.findAnnotation(clazz, Aspect.class) != null);
+		return (AnnotationUtils.findAnnotation(clazz, Aspect.class) != null &&
+				(!shouldIgnoreAjcCompiledAspects || !compiledByAjc(clazz)));
 	}
 
 	@Override
@@ -92,8 +112,7 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 	 * (there <i>should</i> only be one anyway...).
 	 */
 	@SuppressWarnings("unchecked")
-	@Nullable
-	protected static AspectJAnnotation findAspectJAnnotationOnMethod(Method method) {
+	protected static @Nullable AspectJAnnotation findAspectJAnnotationOnMethod(Method method) {
 		for (Class<?> annotationType : ASPECTJ_ANNOTATION_CLASSES) {
 			AspectJAnnotation annotation = findAnnotation(method, (Class<Annotation>) annotationType);
 			if (annotation != null) {
@@ -103,8 +122,7 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 		return null;
 	}
 
-	@Nullable
-	private static AspectJAnnotation findAnnotation(Method method, Class<? extends Annotation> annotationType) {
+	private static @Nullable AspectJAnnotation findAnnotation(Method method, Class<? extends Annotation> annotationType) {
 		Annotation annotation = AnnotationUtils.findAnnotation(method, annotationType);
 		if (annotation != null) {
 			return new AspectJAnnotation(annotation);
@@ -112,6 +130,15 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 		else {
 			return null;
 		}
+	}
+
+	private static boolean compiledByAjc(Class<?> clazz) {
+		for (Field field : clazz.getDeclaredFields()) {
+			if (field.getName().startsWith(AJC_MAGIC)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 
@@ -213,8 +240,7 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 		private static final String[] EMPTY_ARRAY = new String[0];
 
 		@Override
-		@Nullable
-		public String[] getParameterNames(Method method) {
+		public String @Nullable [] getParameterNames(Method method) {
 			if (method.getParameterCount() == 0) {
 				return EMPTY_ARRAY;
 			}
@@ -237,8 +263,7 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 		}
 
 		@Override
-		@Nullable
-		public String[] getParameterNames(Constructor<?> ctor) {
+		public @Nullable String @Nullable [] getParameterNames(Constructor<?> ctor) {
 			throw new UnsupportedOperationException("Spring AOP cannot handle constructor advice");
 		}
 	}

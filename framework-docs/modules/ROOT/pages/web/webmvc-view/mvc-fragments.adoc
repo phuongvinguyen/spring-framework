@@ -19,7 +19,7 @@ can return `Collection<ModelAndView>`. For example:
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	@GetMapping
 	List<ModelAndView> handle() {
@@ -29,7 +29,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	@GetMapping
 	fun handle(): List<ModelAndView> {
@@ -44,21 +44,21 @@ The same can be done also by returning the dedicated type `FragmentsRendering`:
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	@GetMapping
 	FragmentsRendering handle() {
-		return FragmentsRendering.with("posts").fragment("comments").build();
+		return FragmentsRendering.fragment("posts").fragment("comments").build();
 	}
 ----
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	@GetMapping
 	fun handle(): FragmentsRendering {
-		return FragmentsRendering.with("posts").fragment("comments").build()
+		return FragmentsRendering.fragment("posts").fragment("comments").build()
 	}
 ----
 ======
@@ -73,7 +73,7 @@ A controller can use `SseEmitter` to send `ModelAndView` to render a fragment pe
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	@GetMapping
 	SseEmitter handle() {
@@ -94,7 +94,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	@GetMapping 
 	fun handle(): SseEmitter {

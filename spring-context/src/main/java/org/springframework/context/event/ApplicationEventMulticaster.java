@@ -18,10 +18,11 @@ package org.springframework.context.event;
 
 import java.util.function.Predicate;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.ResolvableType;
-import org.springframework.lang.Nullable;
 
 /**
  * Interface to be implemented by objects that can manage a number of
@@ -73,12 +74,12 @@ public interface ApplicationEventMulticaster {
 	/**
 	 * Remove all matching listeners from the set of registered
 	 * {@code ApplicationListener} instances (which includes adapter classes
-	 * such as {@link ApplicationListenerMethodAdapter}, e.g. for annotated
+	 * such as {@link ApplicationListenerMethodAdapter}, for example, for annotated
 	 * {@link EventListener} methods).
 	 * <p>Note: This just applies to instance registrations, not to listeners
 	 * registered by bean name.
 	 * @param predicate the predicate to identify listener instances to remove,
-	 * e.g. checking {@link SmartApplicationListener#getListenerId()}
+	 * for example, checking {@link SmartApplicationListener#getListenerId()}
 	 * @since 5.3.5
 	 * @see #addApplicationListener(ApplicationListener)
 	 * @see #removeApplicationListener(ApplicationListener)

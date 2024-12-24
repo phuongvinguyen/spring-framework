@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.context.Lifecycle;
@@ -34,7 +35,6 @@ import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.MultiValueMap;
@@ -48,7 +48,6 @@ import org.springframework.web.reactive.socket.server.upgrade.JettyRequestUpgrad
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNetty2RequestUpgradeStrategy;
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
 import org.springframework.web.reactive.socket.server.upgrade.StandardWebSocketUpgradeStrategy;
-import org.springframework.web.reactive.socket.server.upgrade.TomcatRequestUpgradeStrategy;
 import org.springframework.web.reactive.socket.server.upgrade.UndertowRequestUpgradeStrategy;
 import org.springframework.web.server.MethodNotAllowedException;
 import org.springframework.web.server.ServerWebExchange;
@@ -73,8 +72,6 @@ public class HandshakeWebSocketService implements WebSocketService, Lifecycle {
 	private static final Mono<Map<String, Object>> EMPTY_ATTRIBUTES = Mono.just(Collections.emptyMap());
 
 
-	private static final boolean tomcatWsPresent;
-
 	private static final boolean jettyWsPresent;
 
 	private static final boolean jettyCoreWsPresent;
@@ -87,8 +84,6 @@ public class HandshakeWebSocketService implements WebSocketService, Lifecycle {
 
 	static {
 		ClassLoader classLoader = HandshakeWebSocketService.class.getClassLoader();
-		tomcatWsPresent = ClassUtils.isPresent(
-				"org.apache.tomcat.websocket.server.WsHttpUpgradeHandler", classLoader);
 		jettyWsPresent = ClassUtils.isPresent(
 				"org.eclipse.jetty.ee10.websocket.server.JettyWebSocketServerContainer", classLoader);
 		jettyCoreWsPresent = ClassUtils.isPresent(
@@ -107,8 +102,7 @@ public class HandshakeWebSocketService implements WebSocketService, Lifecycle {
 
 	private final RequestUpgradeStrategy upgradeStrategy;
 
-	@Nullable
-	private Predicate<String> sessionAttributePredicate;
+	private @Nullable Predicate<String> sessionAttributePredicate;
 
 	private volatile boolean running;
 
@@ -155,8 +149,7 @@ public class HandshakeWebSocketService implements WebSocketService, Lifecycle {
 	 * attributes from {@code WebSession} attributes.
 	 * @since 5.1
 	 */
-	@Nullable
-	public Predicate<String> getSessionAttributePredicate() {
+	public @Nullable Predicate<String> getSessionAttributePredicate() {
 		return this.sessionAttributePredicate;
 	}
 
@@ -235,8 +228,7 @@ public class HandshakeWebSocketService implements WebSocketService, Lifecycle {
 		return Mono.error(new ServerWebInputException(reason));
 	}
 
-	@Nullable
-	private String selectProtocol(HttpHeaders headers, WebSocketHandler handler) {
+	private @Nullable String selectProtocol(HttpHeaders headers, WebSocketHandler handler) {
 		String protocolHeader = headers.getFirst(SEC_WEBSOCKET_PROTOCOL);
 		if (protocolHeader != null) {
 			List<String> supportedProtocols = handler.getSubProtocols();
@@ -277,10 +269,7 @@ public class HandshakeWebSocketService implements WebSocketService, Lifecycle {
 
 
 	static RequestUpgradeStrategy initUpgradeStrategy() {
-		if (tomcatWsPresent) {
-			return new TomcatRequestUpgradeStrategy();
-		}
-		else if (jettyWsPresent) {
+		if (jettyWsPresent) {
 			return new JettyRequestUpgradeStrategy();
 		}
 		else if (jettyCoreWsPresent) {

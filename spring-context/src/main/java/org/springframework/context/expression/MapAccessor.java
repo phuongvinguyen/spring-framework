@@ -18,18 +18,20 @@ package org.springframework.context.expression;
 
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.asm.MethodVisitor;
 import org.springframework.expression.AccessException;
 import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.PropertyAccessor;
 import org.springframework.expression.TypedValue;
 import org.springframework.expression.spel.CodeFlow;
 import org.springframework.expression.spel.CompilablePropertyAccessor;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * EL property accessor that knows how to traverse the keys
- * of a standard {@link java.util.Map}.
+ * SpEL {@link PropertyAccessor} that knows how to access the keys of a standard
+ * {@link java.util.Map}.
  *
  * @author Juergen Hoeller
  * @author Andy Clement
@@ -39,9 +41,9 @@ public class MapAccessor implements CompilablePropertyAccessor {
 
 	private final boolean allowWrite;
 
+
 	/**
-	 * Create a new map accessor for reading as well as writing.
-	 * @since 6.2
+	 * Create a new {@code MapAccessor} for reading as well as writing.
 	 * @see #MapAccessor(boolean)
 	 */
 	public MapAccessor() {
@@ -49,7 +51,7 @@ public class MapAccessor implements CompilablePropertyAccessor {
 	}
 
 	/**
-	 * Create a new map accessor for reading and possibly also writing.
+	 * Create a new {@code MapAccessor} for reading and possibly also writing.
 	 * @param allowWrite whether to allow write operations on a target instance
 	 * @since 6.2
 	 * @see #canWrite
@@ -57,6 +59,7 @@ public class MapAccessor implements CompilablePropertyAccessor {
 	public MapAccessor(boolean allowWrite) {
 		this.allowWrite = allowWrite;
 	}
+
 
 	@Override
 	public Class<?>[] getSpecificTargetClasses() {

@@ -19,7 +19,7 @@ Consider the following class definition:
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	// the service class that we want to make transactional
 	@Transactional
@@ -49,7 +49,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	// the service class that we want to make transactional
 	@Transactional
@@ -138,7 +138,7 @@ programming arrangements as the following listing shows:
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	// the reactive service class that we want to make transactional
 	@Transactional
@@ -168,7 +168,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	// the reactive service class that we want to make transactional
 	@Transactional
@@ -250,7 +250,7 @@ the proxy are intercepted. This means that self-invocation (in effect, a method 
 the target object calling another method of the target object) does not lead to an actual
 transaction at runtime even if the invoked method is marked with `@Transactional`. Also,
 the proxy must be fully initialized to provide the expected behavior, so you should not
-rely on this feature in your initialization code -- e.g. in a `@PostConstruct` method.
+rely on this feature in your initialization code -- for example, in a `@PostConstruct` method.
 
 Consider using AspectJ mode (see the `mode` attribute in the following table) if you
 expect self-invocations to be wrapped with transactions as well. In this case, there is
@@ -327,7 +327,7 @@ precedence over the transactional settings defined at the class level.
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	@Transactional(readOnly = true)
 	public class DefaultFooService implements FooService {
@@ -346,7 +346,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim"]
 ----
 	@Transactional(readOnly = true)
 	class DefaultFooService : FooService {
@@ -485,7 +485,7 @@ in the application context:
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	public class TransactionalService {
 
@@ -502,7 +502,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim"]
 ----
 	class TransactionalService {
 
@@ -564,7 +564,7 @@ transaction definitions from a base class as well. This effectively overrides
 the default transaction manager choice for any unqualified base class methods.
 
 Last but not least, such a type-level bean qualifier can serve multiple purposes,
-e.g. with a value of "order" it can be used for autowiring purposes (identifying
+for example, with a value of "order" it can be used for autowiring purposes (identifying
 the order repository) as well as transaction manager selection, as long as the
 target beans for autowiring as well as the associated transaction manager
 definitions declare the same qualifier value. Such a qualifier value only needs
@@ -583,7 +583,7 @@ following annotation definitions:
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	@Target({ElementType.METHOD, ElementType.TYPE})
 	@Retention(RetentionPolicy.RUNTIME)
@@ -600,7 +600,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim"]
 ----
 	@Target(AnnotationTarget.FUNCTION, AnnotationTarget.TYPE)
 	@Retention(AnnotationRetention.RUNTIME)
@@ -620,7 +620,7 @@ The preceding annotations let us write the example from the previous section as 
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	public class TransactionalService {
 
@@ -638,7 +638,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim"]
 ----
 	class TransactionalService {
 

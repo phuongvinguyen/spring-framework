@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Adapts a given {@link MultiValueMap} to the {@link Map} contract. The
@@ -46,11 +46,9 @@ final class MultiToSingleValueMapAdapter<K, V> implements Map<K, V>, Serializabl
 
 	private final MultiValueMap<K, V> targetMap;
 
-	@Nullable
-	private transient Collection<V> values;
+	private transient @Nullable Collection<V> values;
 
-	@Nullable
-	private transient Set<Entry<K, V>> entries;
+	private transient @Nullable Set<Entry<K, V>> entries;
 
 
 	/**
@@ -61,6 +59,7 @@ final class MultiToSingleValueMapAdapter<K, V> implements Map<K, V>, Serializabl
 		Assert.notNull(targetMap, "'targetMap' must not be null");
 		this.targetMap = targetMap;
 	}
+
 
 	@Override
 	public int size() {
@@ -100,20 +99,17 @@ final class MultiToSingleValueMapAdapter<K, V> implements Map<K, V>, Serializabl
 	}
 
 	@Override
-	@Nullable
-	public V get(Object key) {
+	public @Nullable V get(Object key) {
 		return adaptValue(this.targetMap.get(key));
 	}
 
-	@Nullable
 	@Override
-	public V put(K key, @Nullable V value) {
+	public @Nullable V put(K key, @Nullable V value) {
 		return adaptValue(this.targetMap.put(key, adaptValue(value)));
 	}
 
 	@Override
-	@Nullable
-	public V remove(Object key) {
+	public @Nullable V remove(Object key) {
 		return adaptValue(this.targetMap.remove(key));
 	}
 
@@ -139,11 +135,11 @@ final class MultiToSingleValueMapAdapter<K, V> implements Map<K, V>, Serializabl
 		Collection<V> values = this.values;
 		if (values == null) {
 			Collection<List<V>> targetValues = this.targetMap.values();
-			values = new AbstractCollection<V>() {
+			values = new AbstractCollection<>() {
 				@Override
 				public Iterator<V> iterator() {
 					Iterator<List<V>> targetIterator = targetValues.iterator();
-					return new Iterator<V>() {
+					return new Iterator<>() {
 						@Override
 						public boolean hasNext() {
 							return targetIterator.hasNext();
@@ -165,8 +161,6 @@ final class MultiToSingleValueMapAdapter<K, V> implements Map<K, V>, Serializabl
 		}
 		return values;
 	}
-
-
 
 	@Override
 	public Set<Entry<K, V>> entrySet() {
@@ -206,39 +200,53 @@ final class MultiToSingleValueMapAdapter<K, V> implements Map<K, V>, Serializabl
 		this.targetMap.forEach((k, vs) -> action.accept(k, vs.get(0)));
 	}
 
+	private @Nullable V adaptValue(@Nullable List<V> values) {
+		if (!CollectionUtils.isEmpty(values)) {
+			return values.get(0);
+		}
+		else {
+			return null;
+		}
+	}
+
+	private @Nullable List<V> adaptValue(@Nullable V value) {
+		if (value != null) {
+			return Collections.singletonList(value);
+		}
+		else {
+			return null;
+		}
+	}
+
+
 	@Override
-	public boolean equals(@Nullable Object o) {
-		if (o == this) {
+	public boolean equals(@Nullable Object other) {
+		if (this == other) {
 			return true;
 		}
-		else if (o instanceof Map<?,?> other) {
-			if (this.size() != other.size()) {
-				return false;
-			}
+		if (other instanceof Map<?,?> otherMap && size() == otherMap.size()) {
 			try {
 				for (Entry<K, V> e : entrySet()) {
 					K key = e.getKey();
 					V value = e.getValue();
 					if (value == null) {
-						if (other.get(key) != null || !other.containsKey(key)) {
+						if (otherMap.get(key) != null || !otherMap.containsKey(key)) {
 							return false;
 						}
 					}
 					else {
-						if (!value.equals(other.get(key))) {
+						if (!value.equals(otherMap.get(key))) {
 							return false;
 						}
 					}
 				}
+				return true;
 			}
-			catch (ClassCastException | NullPointerException ignore) {
-				return false;
+			catch (ClassCastException | NullPointerException ignored) {
+				// fall through
 			}
-			return true;
 		}
-		else {
-			return false;
-		}
+		return false;
 	}
 
 	@Override
@@ -249,26 +257,6 @@ final class MultiToSingleValueMapAdapter<K, V> implements Map<K, V>, Serializabl
 	@Override
 	public String toString() {
 		return this.targetMap.toString();
-	}
-
-	@Nullable
-	private V adaptValue(@Nullable List<V> values) {
-		if (!CollectionUtils.isEmpty(values)) {
-			return values.get(0);
-		}
-		else {
-			return null;
-		}
-	}
-
-	@Nullable
-	private List<V> adaptValue(@Nullable V value) {
-		if (value != null) {
-			return Collections.singletonList(value);
-		}
-		else {
-			return null;
-		}
 	}
 
 }

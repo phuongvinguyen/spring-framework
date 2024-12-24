@@ -22,10 +22,10 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.servlet.ModelAndView;
@@ -46,6 +46,7 @@ final class CompletedAsyncServerResponse implements AsyncServerResponse {
 		this.serverResponse = serverResponse;
 	}
 
+
 	@Override
 	public ServerResponse block() {
 		return this.serverResponse;
@@ -54,13 +55,6 @@ final class CompletedAsyncServerResponse implements AsyncServerResponse {
 	@Override
 	public HttpStatusCode statusCode() {
 		return this.serverResponse.statusCode();
-	}
-
-	@Override
-	@Deprecated
-	@SuppressWarnings("removal")
-	public int rawStatusCode() {
-		return this.serverResponse.rawStatusCode();
 	}
 
 	@Override
@@ -73,11 +67,11 @@ final class CompletedAsyncServerResponse implements AsyncServerResponse {
 		return this.serverResponse.cookies();
 	}
 
-	@Nullable
 	@Override
-	public ModelAndView writeTo(HttpServletRequest request, HttpServletResponse response, Context context)
+	public @Nullable ModelAndView writeTo(HttpServletRequest request, HttpServletResponse response, Context context)
 			throws ServletException, IOException {
 
 		return this.serverResponse.writeTo(request, response, context);
 	}
+
 }

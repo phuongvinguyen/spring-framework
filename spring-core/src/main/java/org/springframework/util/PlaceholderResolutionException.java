@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Thrown when the resolution of placeholder failed. This exception provides
@@ -38,6 +38,7 @@ public class PlaceholderResolutionException extends IllegalArgumentException {
 	private final String placeholder;
 
 	private final List<String> values;
+
 
 	/**
 	 * Create an exception using the specified reason for its message.
@@ -66,6 +67,7 @@ public class PlaceholderResolutionException extends IllegalArgumentException {
 		}
 		return sb.toString();
 	}
+
 
 	/**
 	 * Return a {@link PlaceholderResolutionException} that provides

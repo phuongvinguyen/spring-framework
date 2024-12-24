@@ -17,6 +17,9 @@
 package org.springframework.expression.spel.ast;
 
 import java.lang.reflect.Array;
+import java.util.Locale;
+
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.asm.MethodVisitor;
 import org.springframework.asm.Type;
@@ -24,7 +27,6 @@ import org.springframework.expression.EvaluationException;
 import org.springframework.expression.TypedValue;
 import org.springframework.expression.spel.CodeFlow;
 import org.springframework.expression.spel.ExpressionState;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
@@ -38,8 +40,7 @@ public class TypeReference extends SpelNodeImpl {
 
 	private final int dimensions;
 
-	@Nullable
-	private transient Class<?> type;
+	private transient @Nullable Class<?> type;
 
 
 	public TypeReference(int startPos, int endPos, SpelNodeImpl qualifiedId) {
@@ -58,7 +59,7 @@ public class TypeReference extends SpelNodeImpl {
 		String typeName = (String) this.children[0].getValueInternal(state).getValue();
 		Assert.state(typeName != null, "No type name");
 		if (!typeName.contains(".") && Character.isLowerCase(typeName.charAt(0))) {
-			TypeCode tc = TypeCode.valueOf(typeName.toUpperCase());
+			TypeCode tc = TypeCode.valueOf(typeName.toUpperCase(Locale.ROOT));
 			if (tc != TypeCode.OBJECT) {
 				// It is a primitive type
 				Class<?> clazz = makeArrayIfNecessary(tc.getType());

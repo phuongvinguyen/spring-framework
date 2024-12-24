@@ -26,6 +26,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.hamcrest.Matcher;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 
 import org.springframework.context.ApplicationContext;
@@ -39,7 +40,6 @@ import org.springframework.http.client.reactive.ClientHttpConnector;
 import org.springframework.http.client.reactive.ClientHttpRequest;
 import org.springframework.http.codec.ClientCodecConfigurer;
 import org.springframework.http.codec.ServerCodecConfigurer;
-import org.springframework.lang.Nullable;
 import org.springframework.test.json.JsonComparator;
 import org.springframework.test.json.JsonCompareMode;
 import org.springframework.test.json.JsonComparison;
@@ -94,7 +94,7 @@ public interface WebTestClient {
 	/**
 	 * The name of a request header used to assign a unique id to every request
 	 * performed through the {@code WebTestClient}. This can be useful for
-	 * storing contextual information at all phases of request processing (e.g.
+	 * storing contextual information at all phases of request processing (for example,
 	 * from a server-side component) under that id and later to look up
 	 * that information once an {@link ExchangeResult} is available.
 	 */
@@ -553,7 +553,7 @@ public interface WebTestClient {
 
 		/**
 		 * Specify the URI for the request using a URI template and URI variables.
-		 * <p>If a {@link UriBuilderFactory} was configured for the client (e.g.
+		 * <p>If a {@link UriBuilderFactory} was configured for the client (for example,
 		 * with a base URI) it will be used to expand the URI template.
 		 * @return spec to add headers or perform the exchange
 		 */
@@ -561,7 +561,7 @@ public interface WebTestClient {
 
 		/**
 		 * Specify the URI for the request using a URI template and URI variables.
-		 * <p>If a {@link UriBuilderFactory} was configured for the client (e.g.
+		 * <p>If a {@link UriBuilderFactory} was configured for the client (for example,
 		 * with a base URI) it will be used to expand the URI template.
 		 * @return spec to add headers or perform the exchange
 		 */
@@ -875,13 +875,13 @@ public interface WebTestClient {
 
 		/**
 		 * Consume and decode the response body to {@code byte[]} and then apply
-		 * assertions on the raw content (e.g. isEmpty, JSONPath, etc.)
+		 * assertions on the raw content (for example, isEmpty, JSONPath, etc.).
 		 */
 		BodyContentSpec expectBody();
 
 		/**
 		 * Exit the chained flow in order to consume the response body
-		 * externally, e.g. via {@link reactor.test.StepVerifier}.
+		 * externally, for example, via {@link reactor.test.StepVerifier}.
 		 * <p>Note that when {@code Void.class} is passed in, the response body
 		 * is consumed and released. If no content is expected, then consider
 		 * using {@code .expectBody().isEmpty()} instead which asserts that
@@ -927,7 +927,7 @@ public interface WebTestClient {
 		<T extends S> T value(Matcher<? super B> matcher);
 
 		/**
-		 * Transform the extracted the body with a function, e.g. extracting a
+		 * Transform the extracted the body with a function, for example, extracting a
 		 * property, and assert the mapped value with a {@link Matcher}.
 		 * @since 5.1
 		 */
@@ -1074,19 +1074,6 @@ public interface WebTestClient {
 		 * @since 6.2
 		 */
 		JsonPathAssertions jsonPath(String expression);
-
-		/**
-		 * Access to response body assertions using a
-		 * <a href="https://github.com/jayway/JsonPath">JsonPath</a> expression
-		 * to inspect a specific subset of the body.
-		 * <p>The JSON path expression can be a parameterized string using
-		 * formatting specifiers as defined in {@link String#format}.
-		 * @param expression the JsonPath expression
-		 * @param args arguments to parameterize the expression
-		 * @deprecated in favor of calling {@link String#formatted(Object...)} upfront
-		 */
-		@Deprecated(since = "6.2", forRemoval = true)
-		JsonPathAssertions jsonPath(String expression, Object... args);
 
 		/**
 		 * Access to response body assertions using an XPath expression to

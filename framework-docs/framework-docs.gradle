@@ -37,7 +37,14 @@ javadoc {
 
 repositories {
 	maven {
-		url "https://repo.spring.io/release"
+		url = "https://repo.spring.io/release"
+	}
+}
+
+// To avoid a redeclaration error with Kotlin compiler
+sourceSets {
+	main {
+		java.exclude("org/springframework/docs/**/*.java")
 	}
 }
 
@@ -62,6 +69,7 @@ dependencies {
 	api("jakarta.servlet:jakarta.servlet-api")
 	api("jakarta.resource:jakarta.resource-api")
 	api("jakarta.validation:jakarta.validation-api")
+	api("jakarta.websocket:jakarta.websocket-client-api")
 	api("javax.cache:cache-api")
 	api("org.apache.activemq:activemq-ra:6.1.2")
 	api("org.apache.commons:commons-dbcp2:2.11.0")

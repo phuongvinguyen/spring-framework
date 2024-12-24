@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.NoOpRunnable;
 import org.springframework.core.task.TaskDecorator;
 import org.springframework.util.Assert;
@@ -41,15 +42,14 @@ class ConcurrentTaskExecutorTests extends AbstractSchedulingTaskExecutorTests {
 			new ThreadPoolExecutor(1, 1, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
 
 
-	@SuppressWarnings("deprecation")
 	@Override
-	protected org.springframework.core.task.AsyncListenableTaskExecutor buildExecutor() {
+	protected AsyncTaskExecutor buildExecutor() {
 		concurrentExecutor.setThreadFactory(new CustomizableThreadFactory(this.threadNamePrefix));
 		return new ConcurrentTaskExecutor(concurrentExecutor);
 	}
 
-	@Override
 	@AfterEach
+	@Override
 	void shutdownExecutor() {
 		for (Runnable task : concurrentExecutor.shutdownNow()) {
 			if (task instanceof Future) {

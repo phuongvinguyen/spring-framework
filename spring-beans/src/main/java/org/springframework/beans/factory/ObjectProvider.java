@@ -21,9 +21,10 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.BeansException;
 import org.springframework.core.OrderComparator;
-import org.springframework.lang.Nullable;
 
 /**
  * A variant of {@link ObjectFactory} designed specifically for injection points,
@@ -32,16 +33,18 @@ import org.springframework.lang.Nullable;
  * <p>In a {@link BeanFactory} environment, every {@code ObjectProvider} obtained
  * from the factory will be bound to its {@code BeanFactory} for a specific bean
  * type, matching all provider calls against factory-registered bean definitions.
+ * Note that all such calls dynamically operate on the underlying factory state,
+ * freshly resolving the requested target object on every call.
  *
  * <p>As of 5.1, this interface extends {@link Iterable} and provides {@link Stream}
  * support. It can be therefore be used in {@code for} loops, provides {@link #forEach}
  * iteration and allows for collection-style {@link #stream} access.
  *
  * <p>As of 6.2, this interface declares default implementations for all methods.
- * This makes it easier to implement in a custom fashion, e.g. for unit tests.
+ * This makes it easier to implement in a custom fashion, for example, for unit tests.
  * For typical purposes, implement {@link #stream()} to enable all other methods.
  * Alternatively, you may implement the specific methods that your callers expect,
- * e.g. just {@link #getObject()} or {@link #getIfAvailable()}.
+ * for example, just {@link #getObject()} or {@link #getIfAvailable()}.
  *
  * @author Juergen Hoeller
  * @since 4.3
@@ -86,8 +89,7 @@ public interface ObjectProvider<T> extends ObjectFactory<T>, Iterable<T> {
 	 * @throws BeansException in case of creation errors
 	 * @see #getObject()
 	 */
-	@Nullable
-	default T getIfAvailable() throws BeansException {
+	default @Nullable T getIfAvailable() throws BeansException {
 		try {
 			return getObject();
 		}
@@ -139,8 +141,7 @@ public interface ObjectProvider<T> extends ObjectFactory<T>, Iterable<T> {
 	 * @throws BeansException in case of creation errors
 	 * @see #getObject()
 	 */
-	@Nullable
-	default T getIfUnique() throws BeansException {
+	default @Nullable T getIfUnique() throws BeansException {
 		try {
 			return getObject();
 		}

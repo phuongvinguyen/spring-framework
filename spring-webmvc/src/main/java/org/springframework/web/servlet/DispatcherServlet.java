@@ -37,6 +37,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.BeanInitializationException;
@@ -52,7 +53,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.ServletServerHttpRequest;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.WebApplicationContext;
@@ -66,7 +66,7 @@ import org.springframework.web.util.ServletRequestPathUtils;
 import org.springframework.web.util.WebUtils;
 
 /**
- * Central dispatcher for HTTP request handlers/controllers, e.g. for web UI controllers
+ * Central dispatcher for HTTP request handlers/controllers, for example, for web UI controllers
  * or HTTP-based remote service exporters. Dispatches to registered handlers for processing
  * a web request, providing convenient mapping and exception handling facilities.
  *
@@ -266,7 +266,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	/**
 	 * Name of request attribute that exposes an Exception resolved with a
 	 * {@link HandlerExceptionResolver} but where no view was rendered
-	 * (e.g. setting the status code).
+	 * (for example, setting the status code).
 	 */
 	public static final String EXCEPTION_ATTRIBUTE = DispatcherServlet.class.getName() + ".EXCEPTION";
 
@@ -289,8 +289,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	protected static final Log pageNotFoundLogger = LogFactory.getLog(PAGE_NOT_FOUND_LOG_CATEGORY);
 
 	/** Store default strategy implementations. */
-	@Nullable
-	private static Properties defaultStrategies;
+	private static @Nullable Properties defaultStrategies;
 
 	/** Detect all HandlerMappings or just expect "handlerMapping" bean?. */
 	private boolean detectAllHandlerMappings = true;
@@ -304,48 +303,36 @@ public class DispatcherServlet extends FrameworkServlet {
 	/** Detect all ViewResolvers or just expect "viewResolver" bean?. */
 	private boolean detectAllViewResolvers = true;
 
-	/** Throw a NoHandlerFoundException if no Handler was found to process this request? *.*/
-	private boolean throwExceptionIfNoHandlerFound = true;
-
 	/** Perform cleanup of request attributes after include request?. */
 	private boolean cleanupAfterInclude = true;
 
 	/** MultipartResolver used by this servlet. */
-	@Nullable
-	private MultipartResolver multipartResolver;
+	private @Nullable MultipartResolver multipartResolver;
 
 	/** LocaleResolver used by this servlet. */
-	@Nullable
-	private LocaleResolver localeResolver;
+	private @Nullable LocaleResolver localeResolver;
 
 	/** ThemeResolver used by this servlet. */
 	@Deprecated
-	@Nullable
-	private ThemeResolver themeResolver;
+	private @Nullable ThemeResolver themeResolver;
 
 	/** List of HandlerMappings used by this servlet. */
-	@Nullable
-	private List<HandlerMapping> handlerMappings;
+	private @Nullable List<HandlerMapping> handlerMappings;
 
 	/** List of HandlerAdapters used by this servlet. */
-	@Nullable
-	private List<HandlerAdapter> handlerAdapters;
+	private @Nullable List<HandlerAdapter> handlerAdapters;
 
 	/** List of HandlerExceptionResolvers used by this servlet. */
-	@Nullable
-	private List<HandlerExceptionResolver> handlerExceptionResolvers;
+	private @Nullable List<HandlerExceptionResolver> handlerExceptionResolvers;
 
 	/** RequestToViewNameTranslator used by this servlet. */
-	@Nullable
-	private RequestToViewNameTranslator viewNameTranslator;
+	private @Nullable RequestToViewNameTranslator viewNameTranslator;
 
 	/** FlashMapManager used by this servlet. */
-	@Nullable
-	private FlashMapManager flashMapManager;
+	private @Nullable FlashMapManager flashMapManager;
 
 	/** List of ViewResolvers used by this servlet. */
-	@Nullable
-	private List<ViewResolver> viewResolvers;
+	private @Nullable List<ViewResolver> viewResolvers;
 
 	private boolean parseRequestPath;
 
@@ -454,26 +441,6 @@ public class DispatcherServlet extends FrameworkServlet {
 	 */
 	public void setDetectAllViewResolvers(boolean detectAllViewResolvers) {
 		this.detectAllViewResolvers = detectAllViewResolvers;
-	}
-
-	/**
-	 * Set whether to throw a NoHandlerFoundException when no Handler was found for this request.
-	 * This exception can then be caught with a HandlerExceptionResolver or an
-	 * {@code @ExceptionHandler} controller method.
-	 * <p>Note that if {@link org.springframework.web.servlet.resource.DefaultServletHttpRequestHandler}
-	 * is used, then requests will always be forwarded to the default servlet and a
-	 * NoHandlerFoundException would never be thrown in that case.
-	 * <p>Default is "false", meaning the DispatcherServlet sends a NOT_FOUND error through the
-	 * Servlet response.
-	 * @since 4.0
-	 * @deprecated as of 6.1 this property is set to {@code true} by default, and
-	 * should not need to be customized; in effect, {@link DispatcherServlet}
-	 * should always raise {@link NoHandlerFoundException} and allow it to be
-	 * handled through a {@link HandlerExceptionResolver}.
-	 */
-	@Deprecated(since = "6.1", forRemoval = true)
-	public void setThrowExceptionIfNoHandlerFound(boolean throwExceptionIfNoHandlerFound) {
-		this.throwExceptionIfNoHandlerFound = throwExceptionIfNoHandlerFound;
 	}
 
 	/**
@@ -814,8 +781,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * @see #getWebApplicationContext()
 	 */
 	@Deprecated
-	@Nullable
-	public final org.springframework.ui.context.ThemeSource getThemeSource() {
+	public final org.springframework.ui.context.@Nullable ThemeSource getThemeSource() {
 		return (getWebApplicationContext() instanceof org.springframework.ui.context.ThemeSource themeSource ?
 				themeSource : null);
 	}
@@ -825,8 +791,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * @return the MultipartResolver used by this servlet, or {@code null} if none
 	 * (indicating that no multipart support is available)
 	 */
-	@Nullable
-	public final MultipartResolver getMultipartResolver() {
+	public final @Nullable MultipartResolver getMultipartResolver() {
 		return this.multipartResolver;
 	}
 
@@ -840,8 +805,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * if not initialized yet
 	 * @since 5.0
 	 */
-	@Nullable
-	public final List<HandlerMapping> getHandlerMappings() {
+	public final @Nullable List<HandlerMapping> getHandlerMappings() {
 		return (this.handlerMappings != null ? Collections.unmodifiableList(this.handlerMappings) : null);
 	}
 
@@ -1215,7 +1179,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		if (this.multipartResolver != null && this.multipartResolver.isMultipart(request)) {
 			if (WebUtils.getNativeRequest(request, MultipartHttpServletRequest.class) != null) {
 				if (DispatcherType.REQUEST.equals(request.getDispatcherType())) {
-					logger.trace("Request already resolved to MultipartHttpServletRequest, e.g. by MultipartFilter");
+					logger.trace("Request already resolved to MultipartHttpServletRequest, for example, by MultipartFilter");
 				}
 			}
 			else if (hasMultipartException(request)) {
@@ -1276,8 +1240,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * @param request current HTTP request
 	 * @return the HandlerExecutionChain, or {@code null} if no handler could be found
 	 */
-	@Nullable
-	protected HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
+	protected @Nullable HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
 		if (this.handlerMappings != null) {
 			for (HandlerMapping mapping : this.handlerMappings) {
 				HandlerExecutionChain handler = mapping.getHandler(request);
@@ -1299,13 +1262,8 @@ public class DispatcherServlet extends FrameworkServlet {
 		if (pageNotFoundLogger.isWarnEnabled()) {
 			pageNotFoundLogger.warn("No mapping for " + request.getMethod() + " " + getRequestUri(request));
 		}
-		if (this.throwExceptionIfNoHandlerFound) {
-			throw new NoHandlerFoundException(request.getMethod(), getRequestUri(request),
-					new ServletServerHttpRequest(request).getHeaders());
-		}
-		else {
-			response.sendError(HttpServletResponse.SC_NOT_FOUND);
-		}
+		throw new NoHandlerFoundException(request.getMethod(), getRequestUri(request),
+				new ServletServerHttpRequest(request).getHeaders());
 	}
 
 	/**
@@ -1335,8 +1293,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * @return a corresponding ModelAndView to forward to
 	 * @throws Exception if no error ModelAndView found
 	 */
-	@Nullable
-	protected ModelAndView processHandlerException(HttpServletRequest request, HttpServletResponse response,
+	protected @Nullable ModelAndView processHandlerException(HttpServletRequest request, HttpServletResponse response,
 			@Nullable Object handler, Exception ex) throws Exception {
 
 		// Success and error responses may use different content types
@@ -1448,8 +1405,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * @return the view name (or {@code null} if no default found)
 	 * @throws Exception if view name translation failed
 	 */
-	@Nullable
-	protected String getDefaultViewName(HttpServletRequest request) throws Exception {
+	protected @Nullable String getDefaultViewName(HttpServletRequest request) throws Exception {
 		return (this.viewNameTranslator != null ? this.viewNameTranslator.getViewName(request) : null);
 	}
 
@@ -1467,15 +1423,13 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * (typically in case of problems creating an actual View object)
 	 * @see ViewResolver#resolveViewName
 	 */
-	@Nullable
-	protected View resolveViewName(String viewName, @Nullable Map<String, Object> model,
+	protected @Nullable View resolveViewName(String viewName, @Nullable Map<String, Object> model,
 			Locale locale, HttpServletRequest request) throws Exception {
 
 		return resolveViewNameInternal(viewName, locale);
 	}
 
-	@Nullable
-	private View resolveViewNameInternal(String viewName, Locale locale) throws Exception {
+	private @Nullable View resolveViewNameInternal(String viewName, Locale locale) throws Exception {
 		if (this.viewResolvers != null) {
 			for (ViewResolver viewResolver : this.viewResolvers) {
 				View view = viewResolver.resolveViewName(viewName, locale);

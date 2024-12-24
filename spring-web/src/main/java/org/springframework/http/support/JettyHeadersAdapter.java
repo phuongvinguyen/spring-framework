@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,16 +22,17 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.http.HttpFields;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.HttpHeaders;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
+import org.springframework.util.LinkedCaseInsensitiveMap;
 import org.springframework.util.MultiValueMap;
 
 /**
@@ -40,14 +41,14 @@ import org.springframework.util.MultiValueMap;
  * @author Rossen Stoyanchev
  * @author Juergen Hoeller
  * @author Sam Brannen
+ * @author Simon Baslé
  * @since 6.1
  */
 public final class JettyHeadersAdapter implements MultiValueMap<String, String> {
 
 	private final HttpFields headers;
 
-	@Nullable
-	private final HttpFields.Mutable mutable;
+	private final HttpFields.@Nullable Mutable mutable;
 
 
 	/**
@@ -103,7 +104,8 @@ public final class JettyHeadersAdapter implements MultiValueMap<String, String> 
 
 	@Override
 	public Map<String, String> toSingleValueMap() {
-		Map<String, String> singleValueMap = CollectionUtils.newLinkedHashMap(this.headers.size());
+		Map<String, String> singleValueMap = new LinkedCaseInsensitiveMap<>(
+				this.headers.size(), Locale.ROOT);
 		Iterator<HttpField> iterator = this.headers.iterator();
 		iterator.forEachRemaining(field -> {
 			if (!singleValueMap.containsKey(field.getName())) {
@@ -140,9 +142,8 @@ public final class JettyHeadersAdapter implements MultiValueMap<String, String> 
 		return false;
 	}
 
-	@Nullable
 	@Override
-	public List<String> get(Object key) {
+	public @Nullable List<String> get(Object key) {
 		List<String> list = null;
 		if (key instanceof String name) {
 			for (HttpField f : this.headers) {
@@ -157,9 +158,8 @@ public final class JettyHeadersAdapter implements MultiValueMap<String, String> 
 		return list;
 	}
 
-	@Nullable
 	@Override
-	public List<String> put(String key, List<String> value) {
+	public @Nullable List<String> put(String key, List<String> value) {
 		HttpFields.Mutable mutableHttpFields = mutableFields();
 		List<String> oldValues = get(key);
 
@@ -180,9 +180,8 @@ public final class JettyHeadersAdapter implements MultiValueMap<String, String> 
 		return oldValues;
 	}
 
-	@Nullable
 	@Override
-	public List<String> remove(Object key) {
+	public @Nullable List<String> remove(Object key) {
 		HttpFields.Mutable mutableHttpFields = mutableFields();
 		List<String> list = null;
 		if (key instanceof String name) {
@@ -232,7 +231,7 @@ public final class JettyHeadersAdapter implements MultiValueMap<String, String> 
 
 			@Override
 			public int size() {
-				return headers.size();
+				return headers.getFieldNamesCollection().size();
 			}
 		};
 	}
@@ -312,8 +311,7 @@ public final class JettyHeadersAdapter implements MultiValueMap<String, String> 
 
 		private final Iterator<String> iterator;
 
-		@Nullable
-		private String currentName;
+		private @Nullable String currentName;
 
 		private HeaderNamesIterator(Iterator<String> iterator) {
 			this.iterator = iterator;

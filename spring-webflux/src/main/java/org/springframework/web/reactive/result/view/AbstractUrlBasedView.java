@@ -18,10 +18,10 @@ package org.springframework.web.reactive.result.view;
 
 import java.util.Locale;
 
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.lang.Nullable;
 
 /**
  * Abstract base class for URL-based views. Provides a consistent way of
@@ -32,8 +32,7 @@ import org.springframework.lang.Nullable;
  */
 public abstract class AbstractUrlBasedView extends AbstractView implements InitializingBean {
 
-	@Nullable
-	private String url;
+	private @Nullable String url;
 
 
 	/**
@@ -61,8 +60,7 @@ public abstract class AbstractUrlBasedView extends AbstractView implements Initi
 	/**
 	 * Return the URL of the resource that this view wraps.
 	 */
-	@Nullable
-	public String getUrl() {
+	public @Nullable String getUrl() {
 		return this.url;
 	}
 
@@ -79,7 +77,7 @@ public abstract class AbstractUrlBasedView extends AbstractView implements Initi
 	 * @param locale the desired Locale that we're looking for
 	 * @return {@code false} if the resource exists
 	 * {@code false} if we know that it does not exist
-	 * @throws Exception if the resource exists but is invalid (e.g. could not be parsed)
+	 * @throws Exception if the resource exists but is invalid (for example, could not be parsed)
 	 */
 	public abstract boolean checkResourceExists(Locale locale) throws Exception;
 

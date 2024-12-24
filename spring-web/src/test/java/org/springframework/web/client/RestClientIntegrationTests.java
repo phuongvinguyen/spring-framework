@@ -23,7 +23,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -49,13 +48,14 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.http.client.JettyClientHttpRequestFactory;
-import org.springframework.http.client.ReactorNettyClientRequestFactory;
+import org.springframework.http.client.ReactorClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.testfixture.xml.Pojo;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
@@ -76,15 +76,13 @@ class RestClientIntegrationTests {
 	@interface ParameterizedRestClientTest {
 	}
 
-	@SuppressWarnings("removal")
 	static Stream<Arguments> clientHttpRequestFactories() {
 		return Stream.of(
 			argumentSet("JDK HttpURLConnection", new SimpleClientHttpRequestFactory()),
 			argumentSet("HttpComponents", new HttpComponentsClientHttpRequestFactory()),
-			argumentSet("OkHttp", new org.springframework.http.client.OkHttp3ClientHttpRequestFactory()),
 			argumentSet("Jetty", new JettyClientHttpRequestFactory()),
 			argumentSet("JDK HttpClient", new JdkClientHttpRequestFactory()),
-			argumentSet("Reactor Netty", new ReactorNettyClientRequestFactory())
+			argumentSet("Reactor Netty", new ReactorClientHttpRequestFactory())
 		);
 	}
 
@@ -660,8 +658,8 @@ class RestClientIntegrationTests {
 		startServer(requestFactory);
 
 		String content = "Internal Server error";
-		prepareResponse(response -> response.setResponseCode(500)
-				.setHeader("Content-Type", "text/plain").setBody(content));
+		prepareResponse(response ->
+				response.setResponseCode(500).setHeader("Content-Type", "text/plain").setBody(content));
 
 		ResponseEntity<String> result = this.restClient.get()
 				.uri("/").accept(MediaType.APPLICATION_JSON)
@@ -689,7 +687,7 @@ class RestClientIntegrationTests {
 		String result = this.restClient.get()
 				.uri("/greeting")
 				.header("X-Test-Header", "testvalue")
-				.exchange((request, response) -> new String(RestClientUtils.getBody(response), StandardCharsets.UTF_8));
+				.exchange((request, response) -> new String(RestClientUtils.getBody(response), UTF_8));
 
 		assertThat(result).isEqualTo("Hello Spring!");
 
@@ -753,12 +751,12 @@ class RestClientIntegrationTests {
 	void exchangeFor404(ClientHttpRequestFactory requestFactory) {
 		startServer(requestFactory);
 
-		prepareResponse(response -> response.setResponseCode(404)
-				.setHeader("Content-Type", "text/plain").setBody("Not Found"));
+		prepareResponse(response ->
+				response.setResponseCode(404).setHeader("Content-Type", "text/plain").setBody("Not Found"));
 
 		String result = this.restClient.get()
 				.uri("/greeting")
-				.exchange((request, response) -> new String(RestClientUtils.getBody(response), StandardCharsets.UTF_8));
+				.exchange((request, response) -> new String(RestClientUtils.getBody(response), UTF_8));
 
 		assertThat(result).isEqualTo("Not Found");
 
@@ -770,8 +768,8 @@ class RestClientIntegrationTests {
 	void requestInitializer(ClientHttpRequestFactory requestFactory) {
 		startServer(requestFactory);
 
-		prepareResponse(response -> response.setHeader("Content-Type", "text/plain")
-				.setBody("Hello Spring!"));
+		prepareResponse(response ->
+				response.setHeader("Content-Type", "text/plain").setBody("Hello Spring!"));
 
 		RestClient initializedClient = this.restClient.mutate()
 				.requestInitializer(request -> request.getHeaders().add("foo", "bar"))
@@ -792,9 +790,8 @@ class RestClientIntegrationTests {
 	void requestInterceptor(ClientHttpRequestFactory requestFactory) {
 		startServer(requestFactory);
 
-		prepareResponse(response -> response.setHeader("Content-Type", "text/plain")
-				.setBody("Hello Spring!"));
-
+		prepareResponse(response ->
+				response.setHeader("Content-Type", "text/plain").setBody("Hello Spring!"));
 
 		RestClient interceptedClient = this.restClient.mutate()
 				.requestInterceptor((request, body, execution) -> {
@@ -814,6 +811,27 @@ class RestClientIntegrationTests {
 		expectRequest(request -> assertThat(request.getHeader("foo")).isEqualTo("bar"));
 	}
 
+	@ParameterizedRestClientTest
+	void retrieveDefaultCookiesAsCookieHeader(ClientHttpRequestFactory requestFactory) {
+		startServer(requestFactory);
+		prepareResponse(response ->
+				response.setHeader("Content-Type", "text/plain").setBody("Hello Spring!"));
+
+		RestClient restClientWithCookies = this.restClient.mutate()
+				.defaultCookie("testCookie", "firstValue", "secondValue")
+				.build();
+
+		restClientWithCookies.get()
+				.uri("/greeting")
+				.header("X-Test-Header", "testvalue")
+				.retrieve()
+				.body(String.class);
+
+		expectRequest(request ->
+				assertThat(request.getHeader(HttpHeaders.COOKIE))
+						.isEqualTo("testCookie=firstValue; testCookie=secondValue")
+		);
+	}
 
 	@ParameterizedRestClientTest
 	void filterForErrorHandling(ClientHttpRequestFactory requestFactory) {
@@ -833,8 +851,8 @@ class RestClientIntegrationTests {
 		RestClient interceptedClient = this.restClient.mutate().requestInterceptor(interceptor).build();
 
 		// header not present
-		prepareResponse(response -> response
-				.setHeader("Content-Type", "text/plain").setBody("Hello Spring!"));
+		prepareResponse(response ->
+				response.setHeader("Content-Type", "text/plain").setBody("Hello Spring!"));
 
 		assertThatExceptionOfType(MyException.class).isThrownBy(() ->
 				interceptedClient.get()
@@ -862,8 +880,8 @@ class RestClientIntegrationTests {
 	void defaultHeaders(ClientHttpRequestFactory requestFactory) {
 		startServer(requestFactory);
 
-		prepareResponse(response -> response.setHeader("Content-Type", "text/plain")
-				.setBody("Hello Spring!"));
+		prepareResponse(response ->
+				response.setHeader("Content-Type", "text/plain").setBody("Hello Spring!"));
 
 		RestClient headersClient = this.restClient.mutate()
 				.defaultHeaders(headers -> headers.add("foo", "bar"))
@@ -884,8 +902,8 @@ class RestClientIntegrationTests {
 	void defaultRequest(ClientHttpRequestFactory requestFactory) {
 		startServer(requestFactory);
 
-		prepareResponse(response -> response.setHeader("Content-Type", "text/plain")
-				.setBody("Hello Spring!"));
+		prepareResponse(response ->
+				response.setHeader("Content-Type", "text/plain").setBody("Hello Spring!"));
 
 		RestClient headersClient = this.restClient.mutate()
 				.defaultRequest(request -> request.header("foo", "bar"))
@@ -906,8 +924,8 @@ class RestClientIntegrationTests {
 	void defaultRequestOverride(ClientHttpRequestFactory requestFactory) {
 		startServer(requestFactory);
 
-		prepareResponse(response -> response.setHeader("Content-Type", "text/plain")
-				.setBody("Hello Spring!"));
+		prepareResponse(response ->
+				response.setHeader("Content-Type", "text/plain").setBody("Hello Spring!"));
 
 		RestClient headersClient = this.restClient.mutate()
 				.defaultRequest(request -> request.accept(MediaType.APPLICATION_JSON))
@@ -929,8 +947,8 @@ class RestClientIntegrationTests {
 	void relativeUri(ClientHttpRequestFactory requestFactory) throws URISyntaxException {
 		startServer(requestFactory);
 
-		prepareResponse(response -> response.setHeader("Content-Type", "text/plain")
-				.setBody("Hello Spring!"));
+		prepareResponse(response ->
+				response.setHeader("Content-Type", "text/plain").setBody("Hello Spring!"));
 
 		URI uri = new URI(null, null, "/foo bar", null);
 
@@ -947,6 +965,61 @@ class RestClientIntegrationTests {
 		expectRequest(request -> assertThat(request.getPath()).isEqualTo("/foo%20bar"));
 	}
 
+	@ParameterizedRestClientTest
+	void cookieAddsCookie(ClientHttpRequestFactory requestFactory) {
+		startServer(requestFactory);
+
+		prepareResponse(response ->
+				response.setHeader("Content-Type", "text/plain").setBody("Hello Spring!"));
+
+		this.restClient.get()
+				.uri("/greeting")
+				.cookie("c1", "v1a")
+				.cookie("c1", "v1b")
+				.cookie("c2", "v2a")
+				.retrieve()
+				.body(String.class);
+
+		expectRequest(request -> assertThat(request.getHeader("Cookie")).isEqualTo("c1=v1a; c1=v1b; c2=v2a"));
+	}
+
+	@ParameterizedRestClientTest
+	void cookieOverridesDefaultCookie(ClientHttpRequestFactory requestFactory) {
+		startServer(requestFactory);
+
+		prepareResponse(response ->
+				response.setHeader("Content-Type", "text/plain").setBody("Hello Spring!"));
+
+		RestClient restClientWithCookies = this.restClient.mutate()
+				.defaultCookie("testCookie", "firstValue", "secondValue")
+				.build();
+
+		restClientWithCookies.get()
+				.uri("/greeting")
+				.cookie("testCookie", "test")
+				.retrieve()
+				.body(String.class);
+
+		expectRequest(request -> assertThat(request.getHeader("Cookie")).isEqualTo("testCookie=test"));
+	}
+
+	@ParameterizedRestClientTest
+	void cookiesCanRemoveCookie(ClientHttpRequestFactory requestFactory) {
+		startServer(requestFactory);
+
+		prepareResponse(response ->
+				response.setHeader("Content-Type", "text/plain").setBody("Hello Spring!"));
+
+		this.restClient.get()
+				.uri("/greeting")
+				.cookie("foo", "bar")
+				.cookie("test", "Hello")
+				.cookies(cookies -> cookies.remove("foo"))
+				.retrieve()
+				.body(String.class);
+
+		expectRequest(request -> assertThat(request.getHeader("Cookie")).isEqualTo("test=Hello"));
+	}
 
 	private void prepareResponse(Consumer<MockResponse> consumer) {
 		MockResponse response = new MockResponse();

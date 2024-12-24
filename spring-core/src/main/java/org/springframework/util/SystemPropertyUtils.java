@@ -16,13 +16,13 @@
 
 package org.springframework.util;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Helper class for resolving placeholders in texts. Usually applied to file paths.
  *
  * <p>A text may contain {@code ${...}} placeholders, to be resolved as system properties:
- * e.g. {@code ${user.dir}}. Default values can be supplied using the ":" separator
+ * for example, {@code ${user.dir}}. Default values can be supplied using the ":" separator
  * between key and value.
  *
  * @author Juergen Hoeller
@@ -104,8 +104,7 @@ public abstract class SystemPropertyUtils {
 		}
 
 		@Override
-		@Nullable
-		public String resolvePlaceholder(String placeholderName) {
+		public @Nullable String resolvePlaceholder(String placeholderName) {
 			try {
 				String propVal = System.getProperty(placeholderName);
 				if (propVal == null) {

@@ -21,9 +21,11 @@ import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.Temporal;
 import java.time.temporal.ValueRange;
+import java.util.Locale;
 import java.util.function.BiFunction;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -143,7 +145,7 @@ abstract class CronField {
 	}
 
 	private static String replaceOrdinals(String value, String[] list) {
-		value = value.toUpperCase();
+		value = value.toUpperCase(Locale.ROOT);
 		for (int i = 0; i < list.length; i++) {
 			String replacement = Integer.toString(i + 1);
 			value = StringUtils.replace(value, list[i], replacement);
@@ -158,8 +160,7 @@ abstract class CronField {
 	 * @param temporal the seed value
 	 * @return the next or same temporal matching the pattern
 	 */
-	@Nullable
-	public abstract <T extends Temporal & Comparable<? super T>> T nextOrSame(T temporal);
+	public abstract <T extends Temporal & Comparable<? super T>> @Nullable T nextOrSame(T temporal);
 
 
 	protected Type type() {

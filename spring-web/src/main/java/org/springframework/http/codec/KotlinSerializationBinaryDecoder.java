@@ -21,6 +21,7 @@ import java.util.Map;
 
 import kotlinx.serialization.BinaryFormat;
 import kotlinx.serialization.KSerializer;
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -30,7 +31,6 @@ import org.springframework.core.codec.ByteArrayDecoder;
 import org.springframework.core.codec.Decoder;
 import org.springframework.core.codec.DecodingException;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.lang.Nullable;
 import org.springframework.util.MimeType;
 
 /**
@@ -60,7 +60,7 @@ public abstract class KotlinSerializationBinaryDecoder<T extends BinaryFormat> e
 	 * decoding to a single {@code DataBuffer},
 	 * {@link java.nio.ByteBuffer ByteBuffer}, {@code byte[]},
 	 * {@link org.springframework.core.io.Resource Resource}, {@code String}, etc.
-	 * It can also occur when splitting the input stream, e.g. delimited text,
+	 * It can also occur when splitting the input stream, for example, delimited text,
 	 * in which case the limit applies to data buffered between delimiters.
 	 * <p>By default this is set to 256K.
 	 * @param byteCount the max number of bytes to buffer, or -1 for unlimited

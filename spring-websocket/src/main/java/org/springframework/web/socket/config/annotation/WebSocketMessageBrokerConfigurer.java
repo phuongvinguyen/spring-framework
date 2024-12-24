@@ -18,8 +18,9 @@ package org.springframework.web.socket.config.annotation;
 
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.context.SmartLifecycle;
-import org.springframework.lang.Nullable;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 import org.springframework.messaging.handler.invocation.HandlerMethodReturnValueHandler;
@@ -28,7 +29,7 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 
 /**
  * Defines methods for configuring message handling with simple messaging
- * protocols (e.g. STOMP) from WebSocket clients.
+ * protocols (for example, STOMP) from WebSocket clients.
  *
  * <p>Typically used to customize the configuration provided via
  * {@link EnableWebSocketMessageBroker @EnableWebSocketMessageBroker}.
@@ -94,7 +95,7 @@ public interface WebSocketMessageBrokerConfigurer {
 
 	/**
 	 * Configure the message converters to use when extracting the payload of
-	 * messages in annotated methods and when sending messages (e.g. through the
+	 * messages in annotated methods and when sending messages (for example, through the
 	 * "broker" SimpMessagingTemplate).
 	 * <p>The provided list, initially empty, can be used to add message converters
 	 * while the boolean return value is used to determine if default message should
@@ -123,8 +124,7 @@ public interface WebSocketMessageBrokerConfigurer {
 	 * @since 6.1.4
 	 * @see SmartLifecycle
 	 */
-	@Nullable
-	default Integer getPhase() {
+	default @Nullable Integer getPhase() {
 		return null;
 	}
 

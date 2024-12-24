@@ -20,9 +20,10 @@ import java.text.ParseException;
 import java.time.Duration;
 import java.util.Locale;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.format.Formatter;
 import org.springframework.format.annotation.DurationFormat;
-import org.springframework.lang.Nullable;
 
 /**
  * {@link Formatter} implementation for a JSR-310 {@link Duration},
@@ -37,8 +38,8 @@ import org.springframework.lang.Nullable;
 public class DurationFormatter implements Formatter<Duration> {
 
 	private final DurationFormat.Style style;
-	@Nullable
-	private final DurationFormat.Unit defaultUnit;
+
+	private final DurationFormat.@Nullable Unit defaultUnit;
 
 	/**
 	 * Create a {@code DurationFormatter} following JSR-310's parsing rules for a Duration
@@ -50,7 +51,7 @@ public class DurationFormatter implements Formatter<Duration> {
 
 	/**
 	 * Create a {@code DurationFormatter} in a specific {@link DurationFormat.Style}.
-	 * <p>When a unit is needed but cannot be determined (e.g. printing a Duration in the
+	 * <p>When a unit is needed but cannot be determined (for example, printing a Duration in the
 	 * {@code SIMPLE} style), {@code DurationFormat.Unit#MILLIS} is used.
 	 */
 	public DurationFormatter(DurationFormat.Style style) {
@@ -69,7 +70,7 @@ public class DurationFormatter implements Formatter<Duration> {
 	 * @param style the {@code DurationStyle} to use
 	 * @param defaultUnit the {@code DurationFormat.Unit} to fall back to when parsing and printing
 	 */
-	public DurationFormatter(DurationFormat.Style style, @Nullable DurationFormat.Unit defaultUnit) {
+	public DurationFormatter(DurationFormat.Style style, DurationFormat.@Nullable Unit defaultUnit) {
 		this.style = style;
 		this.defaultUnit = defaultUnit;
 	}

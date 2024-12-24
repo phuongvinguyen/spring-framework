@@ -24,11 +24,11 @@ import java.util.Collections;
 import java.util.List;
 
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
@@ -49,8 +49,7 @@ public class ServletServerHttpResponse implements ServerHttpResponse {
 
 	private boolean bodyUsed = false;
 
-	@Nullable
-	private HttpHeaders readOnlyHeaders;
+	private @Nullable HttpHeaders readOnlyHeaders;
 
 
 	/**
@@ -142,7 +141,7 @@ public class ServletServerHttpResponse implements ServerHttpResponse {
 	 *
 	 * <p>The intent is merely to expose what is available through the HttpServletResponse
 	 * i.e. the ability to look up specific header values by name. All other
-	 * map-related operations (e.g. iteration, removal, etc) apply only to values
+	 * map-related operations (for example, iteration, removal, etc) apply only to values
 	 * added directly through HttpHeaders methods.
 	 *
 	 * @since 4.0.3
@@ -157,8 +156,7 @@ public class ServletServerHttpResponse implements ServerHttpResponse {
 		}
 
 		@Override
-		@Nullable
-		public String getFirst(String headerName) {
+		public @Nullable String getFirst(String headerName) {
 			if (headerName.equalsIgnoreCase(CONTENT_TYPE)) {
 				// Content-Type is written as an override so check super first
 				String value = super.getFirst(headerName);
@@ -171,8 +169,7 @@ public class ServletServerHttpResponse implements ServerHttpResponse {
 		}
 
 		@Override
-		@Nullable
-		public List<String> get(Object key) {
+		public @Nullable List<String> get(Object key) {
 			Assert.isInstanceOf(String.class, key, "Key must be a String-based header name");
 
 			String headerName = (String) key;

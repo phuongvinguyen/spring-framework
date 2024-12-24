@@ -29,6 +29,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -37,14 +38,12 @@ import org.springframework.context.SmartLifecycle;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskRejectedException;
-import org.springframework.lang.Nullable;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.DelegatingErrorHandlingRunnable;
 import org.springframework.scheduling.support.TaskUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ErrorHandler;
-import org.springframework.util.concurrent.ListenableFuture;
 
 /**
  * A simple implementation of Spring's {@link TaskScheduler} interface, using
@@ -52,7 +51,7 @@ import org.springframework.util.concurrent.ListenableFuture;
  * separate thread. This is an attractive choice with virtual threads on JDK 21,
  * expecting common usage with {@link #setVirtualThreads setVirtualThreads(true)}.
  *
- * <p><b>NOTE: Scheduling with a fixed delay enforces execution on the single
+ * <p><b>NOTE: Scheduling with a fixed delay enforces execution on a single
  * scheduler thread, in order to provide traditional fixed-delay semantics!</b>
  * Prefer the use of fixed rates or cron triggers instead which are a better fit
  * with this thread-per-task scheduler variant.
@@ -70,7 +69,7 @@ import org.springframework.util.concurrent.ListenableFuture;
  * consider setting {@link #setVirtualThreads} to {@code true}.
  *
  * <p>Extends {@link SimpleAsyncTaskExecutor} and can serve as a fully capable
- * replacement for it, e.g. as a single shared instance serving as a
+ * replacement for it, for example, as a single shared instance serving as a
  * {@link org.springframework.core.task.TaskExecutor} as well as a {@link TaskScheduler}.
  * This is generally not the case with other executor/scheduler implementations
  * which tend to have specific constraints for the scheduler thread pool,
@@ -78,13 +77,15 @@ import org.springframework.util.concurrent.ListenableFuture;
  *
  * <p><b>NOTE: This scheduler variant does not track the actual completion of tasks
  * but rather just the hand-off to an execution thread.</b> As a consequence,
- * a {@link ScheduledFuture} handle (e.g. from {@link #schedule(Runnable, Instant)})
+ * a {@link ScheduledFuture} handle (for example, from {@link #schedule(Runnable, Instant)})
  * represents that hand-off rather than the actual completion of the provided task
- * (or series of repeated tasks).
+ * (or series of repeated tasks). Also, this scheduler participates in lifecycle
+ * management to a limited degree only, stopping trigger firing and fixed-delay
+ * task execution but not stopping the execution of handed-off tasks.
  *
  * <p>As an alternative to the built-in thread-per-task capability, this scheduler
  * can also be configured with a separate target executor for scheduled task
- * execution through {@link #setTargetTaskExecutor}: e.g. pointing to a shared
+ * execution through {@link #setTargetTaskExecutor}: for example, pointing to a shared
  * {@link ThreadPoolTaskExecutor} bean. This is still rather different from a
  * {@link ThreadPoolTaskScheduler} setup since it always uses a single scheduler
  * thread while dynamically dispatching to the target thread pool which may have
@@ -113,22 +114,23 @@ public class SimpleAsyncTaskScheduler extends SimpleAsyncTaskExecutor implements
 	private static final TimeUnit NANO = TimeUnit.NANOSECONDS;
 
 
-	private final ScheduledExecutorService scheduledExecutor = createScheduledExecutor();
+	private final ScheduledExecutorService triggerExecutor = createScheduledExecutor();
 
-	private final ExecutorLifecycleDelegate lifecycleDelegate = new ExecutorLifecycleDelegate(this.scheduledExecutor);
+	private final ExecutorLifecycleDelegate triggerLifecycle = new ExecutorLifecycleDelegate(this.triggerExecutor);
 
-	@Nullable
-	private ErrorHandler errorHandler;
+	private final ScheduledExecutorService fixedDelayExecutor = createFixedDelayExecutor();
+
+	private final ExecutorLifecycleDelegate fixedDelayLifecycle = new ExecutorLifecycleDelegate(this.fixedDelayExecutor);
+
+	private @Nullable ErrorHandler errorHandler;
 
 	private Clock clock = Clock.systemDefaultZone();
 
 	private int phase = DEFAULT_PHASE;
 
-	@Nullable
-	private Executor targetTaskExecutor;
+	private @Nullable Executor targetTaskExecutor;
 
-	@Nullable
-	private ApplicationContext applicationContext;
+	private @Nullable ApplicationContext applicationContext;
 
 
 	/**
@@ -195,11 +197,24 @@ public class SimpleAsyncTaskScheduler extends SimpleAsyncTaskExecutor implements
 		return new ScheduledThreadPoolExecutor(1, this::newThread) {
 			@Override
 			protected void beforeExecute(Thread thread, Runnable task) {
-				lifecycleDelegate.beforeExecute(thread);
+				triggerLifecycle.beforeExecute(thread);
 			}
 			@Override
 			protected void afterExecute(Runnable task, Throwable ex) {
-				lifecycleDelegate.afterExecute();
+				triggerLifecycle.afterExecute();
+			}
+		};
+	}
+
+	private ScheduledExecutorService createFixedDelayExecutor() {
+		return new ScheduledThreadPoolExecutor(1, this::newThread) {
+			@Override
+			protected void beforeExecute(Thread thread, Runnable task) {
+				fixedDelayLifecycle.beforeExecute(thread);
+			}
+			@Override
+			protected void afterExecute(Runnable task, Throwable ex) {
+				fixedDelayLifecycle.afterExecute();
 			}
 		};
 	}
@@ -227,7 +242,7 @@ public class SimpleAsyncTaskScheduler extends SimpleAsyncTaskExecutor implements
 		if (this.errorHandler != null) {
 			this.errorHandler.handleError(ex);
 		}
-		else if (this.scheduledExecutor.isShutdown()) {
+		else if (this.triggerExecutor.isShutdown()) {
 			LogFactory.getLog(getClass()).debug("Ignoring scheduled task exception after shutdown", ex);
 		}
 		else {
@@ -251,30 +266,17 @@ public class SimpleAsyncTaskScheduler extends SimpleAsyncTaskExecutor implements
 		return super.submit(new DelegatingErrorHandlingCallable<>(task, this.errorHandler));
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
-	public ListenableFuture<?> submitListenable(Runnable task) {
-		return super.submitListenable(TaskUtils.decorateTaskWithErrorHandler(task, this.errorHandler, false));
-	}
-
-	@SuppressWarnings("deprecation")
-	@Override
-	public <T> ListenableFuture<T> submitListenable(Callable<T> task) {
-		return super.submitListenable(new DelegatingErrorHandlingCallable<>(task, this.errorHandler));
-	}
-
-	@Override
-	@Nullable
-	public ScheduledFuture<?> schedule(Runnable task, Trigger trigger) {
+	public @Nullable ScheduledFuture<?> schedule(Runnable task, Trigger trigger) {
 		try {
 			Runnable delegate = scheduledTask(task);
 			ErrorHandler errorHandler =
 					(this.errorHandler != null ? this.errorHandler : TaskUtils.getDefaultErrorHandler(true));
 			return new ReschedulingRunnable(
-					delegate, trigger, this.clock, this.scheduledExecutor, errorHandler).schedule();
+					delegate, trigger, this.clock, this.triggerExecutor, errorHandler).schedule();
 		}
 		catch (RejectedExecutionException ex) {
-			throw new TaskRejectedException(this.scheduledExecutor, task, ex);
+			throw new TaskRejectedException(this.triggerExecutor, task, ex);
 		}
 	}
 
@@ -282,10 +284,10 @@ public class SimpleAsyncTaskScheduler extends SimpleAsyncTaskExecutor implements
 	public ScheduledFuture<?> schedule(Runnable task, Instant startTime) {
 		Duration delay = Duration.between(this.clock.instant(), startTime);
 		try {
-			return this.scheduledExecutor.schedule(scheduledTask(task), NANO.convert(delay), NANO);
+			return this.triggerExecutor.schedule(scheduledTask(task), NANO.convert(delay), NANO);
 		}
 		catch (RejectedExecutionException ex) {
-			throw new TaskRejectedException(this.scheduledExecutor, task, ex);
+			throw new TaskRejectedException(this.triggerExecutor, task, ex);
 		}
 	}
 
@@ -293,22 +295,22 @@ public class SimpleAsyncTaskScheduler extends SimpleAsyncTaskExecutor implements
 	public ScheduledFuture<?> scheduleAtFixedRate(Runnable task, Instant startTime, Duration period) {
 		Duration initialDelay = Duration.between(this.clock.instant(), startTime);
 		try {
-			return this.scheduledExecutor.scheduleAtFixedRate(scheduledTask(task),
+			return this.triggerExecutor.scheduleAtFixedRate(scheduledTask(task),
 					NANO.convert(initialDelay), NANO.convert(period), NANO);
 		}
 		catch (RejectedExecutionException ex) {
-			throw new TaskRejectedException(this.scheduledExecutor, task, ex);
+			throw new TaskRejectedException(this.triggerExecutor, task, ex);
 		}
 	}
 
 	@Override
 	public ScheduledFuture<?> scheduleAtFixedRate(Runnable task, Duration period) {
 		try {
-			return this.scheduledExecutor.scheduleAtFixedRate(scheduledTask(task),
+			return this.triggerExecutor.scheduleAtFixedRate(scheduledTask(task),
 					0, NANO.convert(period), NANO);
 		}
 		catch (RejectedExecutionException ex) {
-			throw new TaskRejectedException(this.scheduledExecutor, task, ex);
+			throw new TaskRejectedException(this.triggerExecutor, task, ex);
 		}
 	}
 
@@ -317,11 +319,11 @@ public class SimpleAsyncTaskScheduler extends SimpleAsyncTaskExecutor implements
 		Duration initialDelay = Duration.between(this.clock.instant(), startTime);
 		try {
 			// Blocking task on scheduler thread for fixed delay semantics
-			return this.scheduledExecutor.scheduleWithFixedDelay(taskOnSchedulerThread(task),
+			return this.fixedDelayExecutor.scheduleWithFixedDelay(taskOnSchedulerThread(task),
 					NANO.convert(initialDelay), NANO.convert(delay), NANO);
 		}
 		catch (RejectedExecutionException ex) {
-			throw new TaskRejectedException(this.scheduledExecutor, task, ex);
+			throw new TaskRejectedException(this.fixedDelayExecutor, task, ex);
 		}
 	}
 
@@ -329,45 +331,54 @@ public class SimpleAsyncTaskScheduler extends SimpleAsyncTaskExecutor implements
 	public ScheduledFuture<?> scheduleWithFixedDelay(Runnable task, Duration delay) {
 		try {
 			// Blocking task on scheduler thread for fixed delay semantics
-			return this.scheduledExecutor.scheduleWithFixedDelay(taskOnSchedulerThread(task),
+			return this.fixedDelayExecutor.scheduleWithFixedDelay(taskOnSchedulerThread(task),
 					0, NANO.convert(delay), NANO);
 		}
 		catch (RejectedExecutionException ex) {
-			throw new TaskRejectedException(this.scheduledExecutor, task, ex);
+			throw new TaskRejectedException(this.fixedDelayExecutor, task, ex);
 		}
 	}
 
 
 	@Override
 	public void start() {
-		this.lifecycleDelegate.start();
+		this.triggerLifecycle.start();
+		this.fixedDelayLifecycle.start();
 	}
 
 	@Override
 	public void stop() {
-		this.lifecycleDelegate.stop();
+		this.triggerLifecycle.stop();
+		this.fixedDelayLifecycle.stop();
 	}
 
 	@Override
 	public void stop(Runnable callback) {
-		this.lifecycleDelegate.stop(callback);
+		this.triggerLifecycle.stop();  // no callback necessary since it's just triggers with hand-offs
+		this.fixedDelayLifecycle.stop(callback);  // callback for currently executing fixed-delay tasks
 	}
 
 	@Override
 	public boolean isRunning() {
-		return this.lifecycleDelegate.isRunning();
+		return this.triggerLifecycle.isRunning();
 	}
 
 	@Override
 	public void onApplicationEvent(ContextClosedEvent event) {
 		if (event.getApplicationContext() == this.applicationContext) {
-			this.scheduledExecutor.shutdown();
+			this.triggerExecutor.shutdown();
+			this.fixedDelayExecutor.shutdown();
 		}
 	}
 
 	@Override
 	public void close() {
-		for (Runnable remainingTask : this.scheduledExecutor.shutdownNow()) {
+		for (Runnable remainingTask : this.triggerExecutor.shutdownNow()) {
+			if (remainingTask instanceof Future<?> future) {
+				future.cancel(true);
+			}
+		}
+		for (Runnable remainingTask : this.fixedDelayExecutor.shutdownNow()) {
 			if (remainingTask instanceof Future<?> future) {
 				future.cancel(true);
 			}

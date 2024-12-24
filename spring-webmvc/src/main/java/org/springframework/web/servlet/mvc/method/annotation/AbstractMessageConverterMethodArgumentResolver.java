@@ -32,6 +32,7 @@ import java.util.Set;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ResolvableType;
@@ -49,7 +50,6 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.SmartHttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.validation.Errors;
@@ -116,7 +116,6 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 	/**
 	 * Create the method argument value of the expected parameter type by
 	 * reading from the given request.
-	 * @param <T> the expected type of the argument value to be created
 	 * @param webRequest the current request
 	 * @param parameter the method parameter descriptor (may be {@code null})
 	 * @param paramType the type of the argument value to be created
@@ -124,8 +123,7 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 	 * @throws IOException if the reading from the request fails
 	 * @throws HttpMediaTypeNotSupportedException if no suitable message converter is found
 	 */
-	@Nullable
-	protected <T> Object readWithMessageConverters(NativeWebRequest webRequest, MethodParameter parameter,
+	protected @Nullable Object readWithMessageConverters(NativeWebRequest webRequest, MethodParameter parameter,
 			Type paramType) throws IOException, HttpMediaTypeNotSupportedException, HttpMessageNotReadableException {
 
 		HttpInputMessage inputMessage = createInputMessage(webRequest);
@@ -139,14 +137,13 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 	 * @param inputMessage the HTTP input message representing the current request
 	 * @param parameter the method parameter descriptor
 	 * @param targetType the target type, not necessarily the same as the method
-	 * parameter type, e.g. for {@code HttpEntity<String>}.
+	 * parameter type, for example, for {@code HttpEntity<String>}.
 	 * @return the created method argument value
 	 * @throws IOException if the reading from the request fails
 	 * @throws HttpMediaTypeNotSupportedException if no suitable message converter is found
 	 */
-	@Nullable
 	@SuppressWarnings({"rawtypes", "unchecked", "NullAway"})
-	protected <T> Object readWithMessageConverters(HttpInputMessage inputMessage, MethodParameter parameter,
+	protected <T> @Nullable Object readWithMessageConverters(HttpInputMessage inputMessage, MethodParameter parameter,
 			Type targetType) throws IOException, HttpMediaTypeNotSupportedException, HttpMessageNotReadableException {
 
 		Class<?> contextClass = parameter.getContainingClass();
@@ -331,8 +328,7 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 	 * @return the adapted argument, or the original resolved argument as-is
 	 * @since 4.3.5
 	 */
-	@Nullable
-	protected Object adaptArgumentIfNecessary(@Nullable Object arg, MethodParameter parameter) {
+	protected @Nullable Object adaptArgumentIfNecessary(@Nullable Object arg, MethodParameter parameter) {
 		if (parameter.getParameterType() == Optional.class) {
 			if (arg == null || (arg instanceof Collection<?> collection && collection.isEmpty()) ||
 					(arg instanceof Object[] array && array.length == 0)) {
@@ -347,7 +343,7 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 
 	/**
 	 * Allow for closing the body stream if necessary,
-	 * e.g. for part streams in a multipart request.
+	 * for example, for part streams in a multipart request.
 	 */
 	void closeStreamIfNecessary(InputStream body) {
 		// No-op by default: A standard HttpInputMessage exposes the HTTP request stream
@@ -359,8 +355,7 @@ public abstract class AbstractMessageConverterMethodArgumentResolver implements 
 
 		private final HttpHeaders headers;
 
-		@Nullable
-		private final InputStream body;
+		private final @Nullable InputStream body;
 
 		public EmptyBodyCheckingHttpInputMessage(HttpInputMessage inputMessage) throws IOException {
 			this.headers = inputMessage.getHeaders();

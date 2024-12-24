@@ -39,6 +39,7 @@ import io.undertow.util.HeaderMap;
 import io.undertow.util.HttpString;
 import io.undertow.util.Methods;
 import io.undertow.util.StringReadChannelListener;
+import org.jspecify.annotations.Nullable;
 import org.xnio.ChannelListener;
 import org.xnio.ChannelListeners;
 import org.xnio.IoUtils;
@@ -52,7 +53,6 @@ import org.xnio.channels.StreamSourceChannel;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
@@ -70,7 +70,7 @@ import org.springframework.web.socket.sockjs.frame.SockJsFrame;
  *
  * <p>Requires Undertow 1.3 or 1.4, including XNIO.
  *
- * <p>When used for testing purposes (e.g. load testing) or for specific use cases
+ * <p>When used for testing purposes (for example, load testing) or for specific use cases
  * (like HTTPS configuration), a custom {@link OptionMap} should be provided:
  *
  * <pre class="code">

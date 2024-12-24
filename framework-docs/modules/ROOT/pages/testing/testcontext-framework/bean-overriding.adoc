@@ -2,7 +2,8 @@
 = Bean Overriding in Tests
 
 Bean overriding in tests refers to the ability to override specific beans in the
-`ApplicationContext` for a test class, by annotating one or more fields in the test class.
+`ApplicationContext` for a test class, by annotating one or more non-static fields in the
+test class.
 
 NOTE: This feature is intended as a less risky alternative to the practice of registering
 a bean via `@Bean` with the `DefaultListableBeanFactory`
@@ -22,12 +23,12 @@ https://site.mockito.org/[Mockito] third-party library.
 The three annotations mentioned above build upon the `@BeanOverride` meta-annotation and
 associated infrastructure, which allows one to define custom bean overriding variants.
 
-To create custom bean override support, the following is needed:
+To implement custom bean override support, the following is needed:
 
 * An annotation meta-annotated with `@BeanOverride` that defines the
   `BeanOverrideProcessor` to use
 * A custom `BeanOverrideProcessor` implementation
-* One or more concrete `OverrideMetadata` implementations provided by the processor
+* One or more concrete `BeanOverrideHandler` implementations created by the processor
 
 The Spring TestContext framework includes implementations of the following APIs that
 support bean overriding and are responsible for setting up the rest of the infrastructure.
@@ -41,19 +42,35 @@ The `spring-test` module registers implementations of the latter two
 {spring-framework-code}/spring-test/src/main/resources/META-INF/spring.factories[`META-INF/spring.factories`
 properties file].
 
-The bean overriding infrastructure searches in test classes for any field meta-annotated
-with `@BeanOverride` and instantiates the corresponding `BeanOverrideProcessor` which is
-responsible for registering appropriate `OverrideMetadata`.
+The bean overriding infrastructure searches in test classes for any non-static field that
+is meta-annotated with `@BeanOverride` and instantiates the corresponding
+`BeanOverrideProcessor` which is responsible for creating an appropriate
+`BeanOverrideHandler`.
 
-The internal `BeanOverrideBeanFactoryPostProcessor` then uses that information to alter
-the test's `ApplicationContext` by registering and replacing bean definitions as defined
-by the corresponding `BeanOverrideStrategy`:
+The internal `BeanOverrideBeanFactoryPostProcessor` then uses bean override handlers to
+alter the test's `ApplicationContext` by creating, replacing, or wrapping beans as
+defined by the corresponding `BeanOverrideStrategy`:
 
-* `REPLACE_DEFINITION`: Replaces the bean definition. Throws an exception if a
-  corresponding bean definition does not exist.
-* `REPLACE_OR_CREATE_DEFINITION`: Replaces the bean definition if it exists. Creates a
-  new bean definition if a corresponding bean definition does not exist.
-* `WRAP_BEAN`: Retrieves the original bean instance and wraps it.
+`REPLACE`::
+  Replaces the bean. Throws an exception if a corresponding bean does not exist.
+`REPLACE_OR_CREATE`::
+  Replaces the bean if it exists. Creates a new bean if a corresponding bean does not
+  exist.
+`WRAP`::
+  Retrieves the original bean and wraps it.
+
+[TIP]
+====
+Only _singleton_ beans can be overridden. Any attempt to override a non-singleton bean
+will result in an exception.
+
+When replacing a bean created by a `FactoryBean`, the `FactoryBean` itself will be
+replaced with a singleton bean corresponding to bean override instance created by the
+applicable `BeanOverrideHandler`.
+
+When wrapping a bean created by a `FactoryBean`, the object created by the `FactoryBean`
+will be wrapped, not the `FactoryBean` itself.
+====
 
 [NOTE]
 ====
@@ -63,9 +80,9 @@ heuristics it can perform to locate a bean. Either the `BeanOverrideProcessor` c
 the name of the bean to override, or it can be unambiguously selected given the type of
 the annotated field and its qualifying annotations.
 
-Typically, the bean is selected by type by the `BeanOverrideFactoryPostProcessor`.
+Typically, the bean is selected "by type" by the `BeanOverrideFactoryPostProcessor`.
 Alternatively, the user can directly provide the bean name in the custom annotation.
 
-Some `BeanOverrideProcessor` implementations could also internally compute a bean name
-based on a convention or another advanced method.
+`BeanOverrideProcessor` implementations may also internally compute a bean name based on
+a convention or some other method.
 ====

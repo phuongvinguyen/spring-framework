@@ -16,7 +16,7 @@
 
 package org.springframework.transaction;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * This is the central interface in Spring's imperative transaction infrastructure.
@@ -34,7 +34,7 @@ import org.springframework.lang.Nullable;
  * <p>A classic implementation of this strategy interface is
  * {@link org.springframework.transaction.jta.JtaTransactionManager}. However,
  * in common single-resource scenarios, Spring's specific transaction managers
- * for e.g. JDBC, JPA, JMS are preferred choices.
+ * for example, JDBC, JPA, JMS are preferred choices.
  *
  * @author Rod Johnson
  * @author Juergen Hoeller

@@ -70,6 +70,14 @@ class HttpHeadersTests {
 	}
 
 	@Test
+	void writableHttpHeadersUnwrapsMultiple() {
+		HttpHeaders originalExchangeHeaders = HttpHeaders.readOnlyHttpHeaders(new HttpHeaders());
+		HttpHeaders firewallHeaders = new HttpHeaders(originalExchangeHeaders);
+		HttpHeaders writeable = new HttpHeaders(firewallHeaders);
+		writeable.setContentType(MediaType.APPLICATION_JSON);
+	}
+
+	@Test
 	void getOrEmpty() {
 		String key = "FOO";
 
@@ -213,16 +221,25 @@ class HttpHeadersTests {
 		assertThat(headers.getFirst("Host")).as("Invalid Host header").isEqualTo("[::1]");
 	}
 
-	@Test
-	void illegalETagWithoutQuotes() {
-		String eTag = "v2.6";
-		assertThatIllegalArgumentException().isThrownBy(() -> headers.setETag(eTag));
+	@Test // gh-33716
+	void hostDeletion() {
+		InetSocketAddress host = InetSocketAddress.createUnresolved("localhost", 8080);
+		headers.setHost(host);
+		headers.setHost(null);
+		assertThat(headers.getHost()).as("Host is not deleted").isEqualTo(null);
+		assertThat(headers.getFirst("Host")).as("Host is not deleted").isEqualTo(null);
 	}
 
 	@Test
-	void illegalWeakETagWithoutLeadingQuote() {
-		String etag = "W/v2.6\"";
-		assertThatIllegalArgumentException().isThrownBy(() -> headers.setETag(etag));
+	void eTagWithoutQuotes() {
+		headers.setETag("v2.6");
+		assertThat(headers.getETag()).isEqualTo("\"v2.6\"");
+	}
+
+	@Test
+	void weakETagWithoutLeadingQuote() {
+		headers.setETag("W/v2.6\"");
+		assertThat(headers.getETag()).isEqualTo("\"W/v2.6\"\"");
 	}
 
 	@Test
@@ -405,13 +422,12 @@ class HttpHeadersTests {
 	}
 
 	@Test
-	@SuppressWarnings("deprecation")
 	void contentDisposition() {
 		ContentDisposition disposition = headers.getContentDisposition();
 		assertThat(disposition).isNotNull();
 		assertThat(headers.getContentDisposition()).as("Invalid Content-Disposition header").isEqualTo(ContentDisposition.empty());
 
-		disposition = ContentDisposition.attachment().name("foo").filename("foo.txt").size(123L).build();
+		disposition = ContentDisposition.attachment().name("foo").filename("foo.txt").build();
 		headers.setContentDisposition(disposition);
 		assertThat(headers.getContentDisposition()).as("Invalid Content-Disposition header").isEqualTo(disposition);
 	}

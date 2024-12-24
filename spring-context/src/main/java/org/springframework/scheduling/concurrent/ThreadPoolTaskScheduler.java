@@ -19,7 +19,6 @@ package org.springframework.scheduling.concurrent;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.ExecutionException;
@@ -36,19 +35,17 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.springframework.core.task.AsyncListenableTaskExecutor;
+import org.jspecify.annotations.Nullable;
+
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.TaskDecorator;
 import org.springframework.core.task.TaskRejectedException;
-import org.springframework.lang.Nullable;
 import org.springframework.scheduling.SchedulingTaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.Trigger;
 import org.springframework.scheduling.support.TaskUtils;
 import org.springframework.util.Assert;
-import org.springframework.util.ConcurrentReferenceHashMap;
 import org.springframework.util.ErrorHandler;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.ListenableFutureTask;
 
 /**
  * A standard implementation of Spring's {@link TaskScheduler} interface, wrapping
@@ -59,7 +56,7 @@ import org.springframework.util.concurrent.ListenableFutureTask;
  * <p>This is Spring's traditional scheduler variant, staying as close as possible to
  * {@link java.util.concurrent.ScheduledExecutorService} semantics. Task execution happens
  * on the scheduler thread(s) rather than on separate execution threads. As a consequence,
- * a {@link ScheduledFuture} handle (e.g. from {@link #schedule(Runnable, Instant)})
+ * a {@link ScheduledFuture} handle (for example, from {@link #schedule(Runnable, Instant)})
  * represents the actual completion of the provided task (or series of repeated tasks).
  *
  * @author Juergen Hoeller
@@ -76,7 +73,7 @@ import org.springframework.util.concurrent.ListenableFutureTask;
  */
 @SuppressWarnings({"serial", "deprecation"})
 public class ThreadPoolTaskScheduler extends ExecutorConfigurationSupport
-		implements AsyncListenableTaskExecutor, SchedulingTaskExecutor, TaskScheduler {
+		implements AsyncTaskExecutor, SchedulingTaskExecutor, TaskScheduler {
 
 	private static final TimeUnit NANO = TimeUnit.NANOSECONDS;
 
@@ -89,20 +86,13 @@ public class ThreadPoolTaskScheduler extends ExecutorConfigurationSupport
 
 	private volatile boolean executeExistingDelayedTasksAfterShutdownPolicy = true;
 
-	@Nullable
-	private TaskDecorator taskDecorator;
+	private @Nullable TaskDecorator taskDecorator;
 
-	@Nullable
-	private volatile ErrorHandler errorHandler;
+	private volatile @Nullable ErrorHandler errorHandler;
 
 	private Clock clock = Clock.systemDefaultZone();
 
-	@Nullable
-	private ScheduledExecutorService scheduledExecutor;
-
-	// Underlying ScheduledFutureTask to user-level ListenableFuture handle, if any
-	private final Map<Object, ListenableFuture<?>> listenableFutureMap =
-			new ConcurrentReferenceHashMap<>(16, ConcurrentReferenceHashMap.ReferenceType.WEAK);
+	private @Nullable ScheduledExecutorService scheduledExecutor;
 
 
 	/**
@@ -357,55 +347,11 @@ public class ThreadPoolTaskScheduler extends ExecutorConfigurationSupport
 		}
 	}
 
-	@Override
-	public ListenableFuture<?> submitListenable(Runnable task) {
-		ExecutorService executor = getScheduledExecutor();
-		try {
-			ListenableFutureTask<Object> listenableFuture = new ListenableFutureTask<>(task, null);
-			executeAndTrack(executor, listenableFuture);
-			return listenableFuture;
-		}
-		catch (RejectedExecutionException ex) {
-			throw new TaskRejectedException(executor, task, ex);
-		}
-	}
-
-	@Override
-	public <T> ListenableFuture<T> submitListenable(Callable<T> task) {
-		ExecutorService executor = getScheduledExecutor();
-		try {
-			ListenableFutureTask<T> listenableFuture = new ListenableFutureTask<>(task);
-			executeAndTrack(executor, listenableFuture);
-			return listenableFuture;
-		}
-		catch (RejectedExecutionException ex) {
-			throw new TaskRejectedException(executor, task, ex);
-		}
-	}
-
-	private void executeAndTrack(ExecutorService executor, ListenableFutureTask<?> listenableFuture) {
-		Future<?> scheduledFuture = executor.submit(errorHandlingTask(listenableFuture, false));
-		this.listenableFutureMap.put(scheduledFuture, listenableFuture);
-		listenableFuture.addCallback(result -> this.listenableFutureMap.remove(scheduledFuture),
-				ex -> this.listenableFutureMap.remove(scheduledFuture));
-	}
-
-	@Override
-	protected void cancelRemainingTask(Runnable task) {
-		super.cancelRemainingTask(task);
-		// Cancel associated user-level ListenableFuture handle as well
-		ListenableFuture<?> listenableFuture = this.listenableFutureMap.get(task);
-		if (listenableFuture != null) {
-			listenableFuture.cancel(true);
-		}
-	}
-
 
 	// TaskScheduler implementation
 
 	@Override
-	@Nullable
-	public ScheduledFuture<?> schedule(Runnable task, Trigger trigger) {
+	public @Nullable ScheduledFuture<?> schedule(Runnable task, Trigger trigger) {
 		ScheduledExecutorService executor = getScheduledExecutor();
 		try {
 			ErrorHandler errorHandler = this.errorHandler;

@@ -42,7 +42,7 @@ The following example has type and method level mappings:
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	@RestController
 	@RequestMapping("/persons")
@@ -63,7 +63,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	@RestController
 	@RequestMapping("/persons")
@@ -105,7 +105,7 @@ default from version 6.0. See xref:web/webmvc/mvc-config/path-matching.adoc[MVC 
 customizations of path matching options.
 
 `PathPattern` supports the same pattern syntax as `AntPathMatcher`. In addition, it also
-supports the capturing pattern, e.g. `+{*spring}+`, for matching 0 or more path segments
+supports the capturing pattern, for example, `+{*spring}+`, for matching 0 or more path segments
 at the end of a path. `PathPattern` also restricts the use of `+**+` for matching multiple
 path segments such that it's only allowed at the end of a pattern. This eliminates many
 cases of ambiguity when choosing the best matching pattern for a given request.
@@ -119,7 +119,7 @@ Some example patterns:
 * `+"/resources/*.png"+` - match zero or more characters in a path segment
 * `+"/resources/**"+` - match multiple path segments
 * `+"/projects/{project}/versions"+` - match a path segment and capture it as a variable
-* `+"/projects/{project:[a-z]+}/versions"+` - match and capture a variable with a regex
+* `++"/projects/{project:[a-z]+}/versions"++` - match and capture a variable with a regex
 
 Captured URI variables can be accessed with `@PathVariable`. For example:
 
@@ -127,7 +127,7 @@ Captured URI variables can be accessed with `@PathVariable`. For example:
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	@GetMapping("/owners/{ownerId}/pets/{petId}")
 	public Pet findPet(@PathVariable Long ownerId, @PathVariable Long petId) {
@@ -137,7 +137,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	@GetMapping("/owners/{ownerId}/pets/{petId}")
 	fun findPet(@PathVariable ownerId: Long, @PathVariable petId: Long): Pet {
@@ -153,7 +153,7 @@ You can declare URI variables at the class and method levels, as the following e
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	@Controller
 	@RequestMapping("/owners/{ownerId}")
@@ -168,7 +168,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	@Controller
 	@RequestMapping("/owners/{ownerId}")
@@ -199,7 +199,7 @@ extracts the name, version, and file extension:
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	@GetMapping("/{name:[a-z-]+}-{version:\\d\\.\\d\\.\\d}{ext:\\.[a-z]+}")
 	public void handle(@PathVariable String name, @PathVariable String version, @PathVariable String ext) {
@@ -209,7 +209,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	@GetMapping("/{name:[a-z-]+}-{version:\\d\\.\\d\\.\\d}{ext:\\.[a-z]+}")
 	fun handle(@PathVariable name: String, @PathVariable version: String, @PathVariable ext: String) {
@@ -246,36 +246,6 @@ sorted last. Also, prefix patterns (such as `/public/{asterisk}{asterisk}`) are 
 specific than other pattern that do not have double wildcards.
 
 For the full details, follow the above links to the pattern Comparators.
-
-
-[[mvc-ann-requestmapping-suffix-pattern-match]]
-== Suffix Match
-
-Starting in 5.3, by default Spring MVC no longer performs `.{asterisk}` suffix pattern
-matching where a controller mapped to `/person` is also implicitly mapped to
-`/person.{asterisk}`. As a consequence path extensions are no longer used to interpret
-the requested content type for the response -- for example, `/person.pdf`, `/person.xml`,
-and so on.
-
-Using file extensions in this way was necessary when browsers used to send `Accept` headers
-that were hard to interpret consistently. At present, that is no longer a necessity and
-using the `Accept` header should be the preferred choice.
-
-Over time, the use of file name extensions has proven problematic in a variety of ways.
-It can cause ambiguity when overlain with the use of URI variables, path parameters, and
-URI encoding. Reasoning about URL-based authorization
-and security (see next section for more details) also becomes more difficult.
-
-To completely disable the use of path extensions in versions prior to 5.3, set the following:
-
-* `useSuffixPatternMatching(false)`, see xref:web/webmvc/mvc-config/path-matching.adoc[PathMatchConfigurer]
-* `favorPathExtension(false)`, see xref:web/webmvc/mvc-config/content-negotiation.adoc[ContentNegotiationConfigurer]
-
-Having a way to request content types other than through the `"Accept"` header can still
-be useful, e.g. when typing a URL in a browser. A safe alternative to path extensions is
-to use the query parameter strategy. If you must use file extensions, consider restricting
-them to a list of explicitly registered extensions through the `mediaTypes` property of
-xref:web/webmvc/mvc-config/content-negotiation.adoc[ContentNegotiationConfigurer].
 
 
 [[mvc-ann-requestmapping-rfd]]
@@ -317,7 +287,7 @@ as the following example shows:
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	@PostMapping(path = "/pets", consumes = "application/json") // <1>
 	public void addPet(@RequestBody Pet pet) {
@@ -328,7 +298,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	@PostMapping("/pets", consumes = ["application/json"]) // <1>
 	fun addPet(@RequestBody pet: Pet) {
@@ -360,7 +330,7 @@ content types that a controller method produces, as the following example shows:
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	@GetMapping(path = "/pets/{petId}", produces = "application/json") // <1>
 	@ResponseBody
@@ -372,7 +342,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	@GetMapping("/pets/{petId}", produces = ["application/json"]) // <1>
 	@ResponseBody
@@ -406,7 +376,7 @@ specific value (`myParam=myValue`). The following example shows how to test for 
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	@GetMapping(path = "/pets/{petId}", params = "myParam=myValue") // <1>
 	public void findPet(@PathVariable String petId) {
@@ -417,7 +387,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	@GetMapping("/pets/{petId}", params = ["myParam=myValue"]) // <1>
 	fun findPet(@PathVariable petId: String) {
@@ -433,7 +403,7 @@ You can also use the same with request header conditions, as the following examp
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	@GetMapping(path = "/pets/{petId}", headers = "myHeader=myValue") // <1>
 	public void findPet(@PathVariable String petId) {
@@ -444,7 +414,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	@GetMapping("/pets/{petId}", headers = ["myHeader=myValue"]) // <1>
 	fun findPet(@PathVariable petId: String) {
@@ -519,7 +489,7 @@ under different URLs. The following example registers a handler method:
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	@Configuration
 	public class MyConfig {
@@ -544,7 +514,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	@Configuration
 	class MyConfig {
@@ -587,7 +557,7 @@ For example:
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	@HttpExchange("/persons")
 	interface PersonService {
@@ -615,7 +585,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	@HttpExchange("/persons")
 	interface PersonService {

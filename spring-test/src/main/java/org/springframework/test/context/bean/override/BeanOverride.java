@@ -16,25 +16,36 @@
 
 package org.springframework.test.context.bean.override;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.springframework.aot.hint.annotation.Reflective;
+
 /**
  * Mark a composed annotation as eligible for Bean Override processing.
  *
- * <p>Specifying this annotation triggers the configured {@link BeanOverrideProcessor}
+ * <p>Specifying this annotation registers the configured {@link BeanOverrideProcessor}
  * which must be capable of handling the composed annotation and its attributes.
  *
- * <p>Since the composed annotation should only be applied to fields, it is
- * expected that it has a {@link Target} of {@link ElementType#FIELD FIELD}.
+ * <p>Since the composed annotation should only be applied to non-static fields, it is
+ * expected that it is meta-annotated with {@link Target @Target(ElementType.FIELD)}.
+ *
+ * <p>For concrete examples, see
+ * {@link org.springframework.test.context.bean.override.convention.TestBean @TestBean},
+ * {@link org.springframework.test.context.bean.override.mockito.MockitoBean @MockitoBean}, and
+ * {@link org.springframework.test.context.bean.override.mockito.MockitoSpyBean @MockitoSpyBean}.
  *
  * @author Simon Baslé
+ * @author Sam Brannen
  * @since 6.2
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.ANNOTATION_TYPE)
+@Documented
+@Reflective(BeanOverrideReflectiveProcessor.class)
 public @interface BeanOverride {
 
 	/**

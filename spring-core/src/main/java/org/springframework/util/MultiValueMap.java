@@ -19,7 +19,7 @@ package org.springframework.util;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Extension of the {@code Map} interface that stores multiple values.
@@ -36,8 +36,7 @@ public interface MultiValueMap<K, V> extends Map<K, List<V>> {
 	 * @param key the key
 	 * @return the first value for the specified key, or {@code null} if none
 	 */
-	@Nullable
-	V getFirst(K key);
+	@Nullable V getFirst(K key);
 
 	/**
 	 * Add the given single value to the current list of values for the given key.
@@ -97,8 +96,9 @@ public interface MultiValueMap<K, V> extends Map<K, List<V>> {
 	Map<K, V> toSingleValueMap();
 
 	/**
-	 * Return this map as a {@code Map} with the first values contained in this {@code MultiValueMap}.
-	 * The difference between this method and {@link #toSingleValueMap()} is
+	 * Return this map as a {@code Map} with the first values contained in this
+	 * {@code MultiValueMap}.
+	 * <p>The difference between this method and {@link #toSingleValueMap()} is
 	 * that this method returns a view of the entries of this map, whereas
 	 * the latter returns a copy.
 	 * @return a single value representation of this map
@@ -112,9 +112,9 @@ public interface MultiValueMap<K, V> extends Map<K, List<V>> {
 	/**
 	 * Return a {@code MultiValueMap<K, V>} that adapts the given single-value
 	 * {@code Map<K, V>}.
-	 * The returned map cannot map multiple values to the same key, and doing so
-	 * results in an {@link UnsupportedOperationException}. Use
-	 * {@link #fromMultiValue(Map)} to support multiple values.
+	 * <p>The returned map cannot map multiple values to the same key,
+	 * and doing so results in an {@link UnsupportedOperationException}.
+	 * Use {@link #fromMultiValue(Map)} to support multiple values.
 	 * @param map the map to be adapted
 	 * @param <K> the key type
 	 * @param <V> the value element type

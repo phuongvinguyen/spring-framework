@@ -1,8 +1,8 @@
 [[spring-testing-annotation-beanoverriding-testbean]]
 = `@TestBean`
 
-`@TestBean` is used on a field in a test class to override a specific bean in the test's
-`ApplicationContext` with an instance provided by a factory method.
+`@TestBean` is used on a non-static field in a test class to override a specific bean in
+the test's `ApplicationContext` with an instance provided by a factory method.
 
 The associated factory method name is derived from the annotated field's name, or the
 bean name if specified. The factory method must be `static`, accept no arguments, and
@@ -10,10 +10,14 @@ have a return type compatible with the type of the bean to override. To make thi
 explicit, or if you'd rather use a different name, the annotation allows for a specific
 method name to be provided.
 
-By default, the annotated field's type is used to search for candidate bean definitions
-to override. If multiple candidates match, `@Qualifier` can be provided to narrow the
-candidate to override. Alternatively, a candidate whose bean definition name matches the
-name of the field will match.
+By default, the annotated field's type is used to search for candidate beans to override.
+If multiple candidates match, `@Qualifier` can be provided to narrow the candidate to
+override. Alternatively, a candidate whose bean name matches the name of the field will
+match.
+
+A bean will be created if a corresponding bean does not exist. However, if you would like
+for the test to fail when a corresponding bean does not exist, you can set the
+`enforceOverride` attribute to `true` – for example, `@TestBean(enforceOverride = true)`.
 
 To use a by-name override rather than a by-type override, specify the `name` attribute
 of the annotation.
@@ -26,21 +30,29 @@ same bean in several tests, make sure to name the field consistently to avoid cr
 unnecessary contexts.
 ====
 
+[NOTE]
+====
+There are no restrictions on the visibility of `@TestBean` fields or factory methods.
+
+Such fields and methods can therefore be `public`, `protected`, package-private (default
+visibility), or `private` depending on the needs or coding practices of the project.
+====
+
 The following example shows how to use the default behavior of the `@TestBean` annotation:
 
 [tabs]
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	class OverrideBeanTests {
 		@TestBean // <1>
-		private CustomService customService;
+		CustomService customService;
 
 		// test case body...
 
-		private static CustomService customService() { // <2>
+		static CustomService customService() { // <2>
 			return new MyFakeCustomService();
 		}
 	}
@@ -60,15 +72,15 @@ The following example uses a by-name lookup, rather than a by-type lookup:
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	class OverrideBeanTests {
 		@TestBean(name = "service", methodName = "createCustomService") // <1>
-		private CustomService customService;
+		CustomService customService;
 
 		// test case body...
 
-		private static CustomService createCustomService() { // <2>
+		static CustomService createCustomService() { // <2>
 			return new MyFakeCustomService();
 		}
 	}
@@ -78,7 +90,7 @@ Java::
 <2> The result of this static method will be used as the instance and injected into the field.
 ======
 
-[NOTE]
+[TIP]
 ====
 Spring searches for the factory method to invoke in the test class, in the test class
 hierarchy, and in the enclosing class hierarchy for a `@Nested` test class.
@@ -86,4 +98,14 @@ hierarchy, and in the enclosing class hierarchy for a `@Nested` test class.
 Alternatively, a factory method in an external class can be referenced via its
 fully-qualified method name following the syntax `<fully-qualified class name>#<method name>`
 – for example, `methodName = "org.example.TestUtils#createCustomService"`.
+====
+
+[TIP]
+====
+Only _singleton_ beans can be overridden. Any attempt to override a non-singleton bean
+will result in an exception.
+
+When overriding a bean created by a `FactoryBean`, the `FactoryBean` will be replaced
+with a singleton bean corresponding to the value returned from the `@TestBean` factory
+method.
 ====

@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,10 +29,10 @@ import com.github.benmanes.caffeine.cache.AsyncCacheLoader;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.CaffeineSpec;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
@@ -70,8 +70,7 @@ public class CaffeineCacheManager implements CacheManager {
 
 	private Caffeine<Object, Object> cacheBuilder = Caffeine.newBuilder();
 
-	@Nullable
-	private AsyncCacheLoader<Object, Object> cacheLoader;
+	private @Nullable AsyncCacheLoader<Object, Object> cacheLoader;
 
 	private boolean asyncCacheMode = false;
 
@@ -251,8 +250,7 @@ public class CaffeineCacheManager implements CacheManager {
 	}
 
 	@Override
-	@Nullable
-	public Cache getCache(String name) {
+	public @Nullable Cache getCache(String name) {
 		Cache cache = this.cacheMap.get(name);
 		if (cache == null && this.dynamic) {
 			cache = this.cacheMap.computeIfAbsent(name, this::createCaffeineCache);
@@ -301,6 +299,17 @@ public class CaffeineCacheManager implements CacheManager {
 	public void registerCustomCache(String name, AsyncCache<Object, Object> cache) {
 		this.customCacheNames.add(name);
 		this.cacheMap.put(name, adaptCaffeineCache(name, cache));
+	}
+
+	/**
+	 * Remove the specified cache from this cache manager, applying to
+	 * custom caches as well as dynamically registered caches at runtime.
+	 * @param name the name of the cache
+	 * @since 6.1.15
+	 */
+	public void removeCache(String name) {
+		this.customCacheNames.remove(name);
+		this.cacheMap.remove(name);
 	}
 
 	/**

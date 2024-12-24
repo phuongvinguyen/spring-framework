@@ -30,7 +30,7 @@ configuration class:
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	@SpringJUnitConfig(TestConfig.class) // <1>
 	class ConfigurationClassJUnitJupiterSpringTests {
@@ -41,7 +41,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	@SpringJUnitConfig(TestConfig::class) // <1>
 	class ConfigurationClassJUnitJupiterSpringTests {
@@ -59,7 +59,7 @@ location of a configuration file:
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	@SpringJUnitConfig(locations = "/test-config.xml") // <1>
 	class XmlJUnitJupiterSpringTests {
@@ -70,7 +70,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	@SpringJUnitConfig(locations = ["/test-config.xml"]) // <1>
 	class XmlJUnitJupiterSpringTests {
@@ -105,7 +105,7 @@ a configuration class:
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	@SpringJUnitWebConfig(TestConfig.class) // <1>
 	class ConfigurationClassJUnitJupiterSpringWebTests {
@@ -116,7 +116,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	@SpringJUnitWebConfig(TestConfig::class) // <1>
 	class ConfigurationClassJUnitJupiterSpringWebTests {
@@ -134,7 +134,7 @@ location of a configuration file:
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	@SpringJUnitWebConfig(locations = "/test-config.xml") // <1>
 	class XmlJUnitJupiterSpringWebTests {
@@ -145,7 +145,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	@SpringJUnitWebConfig(locations = ["/test-config.xml"]) // <1>
 	class XmlJUnitJupiterSpringWebTests {
@@ -171,9 +171,9 @@ the parameters of a test class constructor are autowired from components in the 
 
 If `@TestConstructor` is not present or meta-present on a test class, the default _test
 constructor autowire mode_ will be used. See the tip below for details on how to change
-the default mode. Note, however, that a local declaration of `@Autowired`,
-`@jakarta.inject.Inject`, or `@javax.inject.Inject` on a constructor takes precedence
-over both `@TestConstructor` and the default mode.
+the default mode. Note, however, that a local declaration of `@Autowired` or
+`@jakarta.inject.Inject` on a constructor takes precedence over both `@TestConstructor`
+and the default mode.
 
 .Changing the default test constructor autowire mode
 [TIP]
@@ -274,7 +274,7 @@ example, you can create a custom `@EnabledOnMac` annotation as follows:
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	@Target({ElementType.TYPE, ElementType.METHOD})
 	@Retention(RetentionPolicy.RUNTIME)
@@ -287,7 +287,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	@Target(AnnotationTarget.TYPE, AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)
@@ -340,7 +340,7 @@ example, you can create a custom `@DisabledOnMac` annotation as follows:
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	@Target({ElementType.TYPE, ElementType.METHOD})
 	@Retention(RetentionPolicy.RUNTIME)
@@ -353,7 +353,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	@Target(AnnotationTarget.TYPE, AnnotationTarget.FUNCTION)
 	@Retention(AnnotationRetention.RUNTIME)

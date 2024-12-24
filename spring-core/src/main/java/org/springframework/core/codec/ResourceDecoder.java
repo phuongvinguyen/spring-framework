@@ -19,6 +19,7 @@ package org.springframework.core.codec;
 import java.io.ByteArrayInputStream;
 import java.util.Map;
 
+import org.jspecify.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
 
@@ -28,7 +29,6 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 
@@ -41,7 +41,7 @@ import org.springframework.util.MimeTypeUtils;
  */
 public class ResourceDecoder extends AbstractDataBufferDecoder<Resource> {
 
-	/** Name of hint with a filename for the resource(e.g. from "Content-Disposition" HTTP header). */
+	/** Name of hint with a filename for the resource(for example, from "Content-Disposition" HTTP header). */
 	public static final String FILENAME_HINT = ResourceDecoder.class.getName() + ".filename";
 
 
@@ -80,8 +80,7 @@ public class ResourceDecoder extends AbstractDataBufferDecoder<Resource> {
 		if (clazz == InputStreamResource.class) {
 			return new InputStreamResource(new ByteArrayInputStream(bytes)) {
 				@Override
-				@Nullable
-				public String getFilename() {
+				public @Nullable String getFilename() {
 					return filename;
 				}
 				@Override
@@ -93,8 +92,7 @@ public class ResourceDecoder extends AbstractDataBufferDecoder<Resource> {
 		else if (Resource.class.isAssignableFrom(clazz)) {
 			return new ByteArrayResource(bytes) {
 				@Override
-				@Nullable
-				public String getFilename() {
+				public @Nullable String getFilename() {
 					return filename;
 				}
 			};

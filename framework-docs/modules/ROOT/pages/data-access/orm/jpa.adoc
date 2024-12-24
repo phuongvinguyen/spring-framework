@@ -142,8 +142,7 @@ Alternatively, specify a custom `persistenceXmlLocation` on your
 META-INF/my-persistence.xml) and include only a descriptor with that name in your
 application jar files. Because the Jakarta EE server looks only for default
 `META-INF/persistence.xml` files, it ignores such custom persistence units and, hence,
-avoids conflicts with a Spring-driven JPA setup upfront. (This applies to Resin 3.1, for
-example.)
+avoids conflicts with a Spring-driven JPA setup upfront.
 
 .When is load-time weaving required?
 ****
@@ -175,7 +174,7 @@ a context-wide `LoadTimeWeaver` by using the `@EnableLoadTimeWeaving` annotation
 `context:load-time-weaver` XML element. Such a global weaver is automatically picked up
 by all JPA `LocalContainerEntityManagerFactoryBean` instances. The following example
 shows the preferred way of setting up a load-time weaver, delivering auto-detection
-of the platform (e.g. Tomcat's weaving-capable class loader or Spring's JVM agent)
+of the platform (for example, Tomcat's weaving-capable class loader or Spring's JVM agent)
 and automatic propagation of the weaver to all weaver-aware beans:
 
 [source,xml,indent=0,subs="verbatim,quotes"]
@@ -299,7 +298,7 @@ shows a plain JPA DAO implementation that uses the `@PersistenceUnit` annotation
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	public class ProductDaoImpl implements ProductDao {
 
@@ -328,7 +327,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	class ProductDaoImpl : ProductDao {
 
@@ -394,7 +393,7 @@ EntityManager) to be injected instead of the factory. The following example show
 ======
 Java::
 +
-[source,java,indent=0,subs="verbatim,quotes",role="primary"]
+[source,java,indent=0,subs="verbatim,quotes"]
 ----
 	public class ProductDaoImpl implements ProductDao {
 
@@ -411,7 +410,7 @@ Java::
 
 Kotlin::
 +
-[source,kotlin,indent=0,subs="verbatim,quotes",role="secondary"]
+[source,kotlin,indent=0,subs="verbatim,quotes"]
 ----
 	class ProductDaoImpl : ProductDao {
 
@@ -469,7 +468,7 @@ a non-invasiveness perspective and can feel more natural to JPA developers.
 What about providing JPA resources via constructors and other `@Autowired` injection points?
 
 `EntityManagerFactory` can easily be injected via constructors and `@Autowired` fields/methods
-as long as the target is defined as a bean, e.g. via `LocalContainerEntityManagerFactoryBean`.
+as long as the target is defined as a bean, for example, via `LocalContainerEntityManagerFactoryBean`.
 The injection point matches the original `EntityManagerFactory` definition by type as-is.
 
 However, an `@PersistenceContext`-style shared `EntityManager` reference is not available for

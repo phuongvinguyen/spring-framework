@@ -23,6 +23,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -35,9 +39,11 @@ import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import okio.Buffer;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Named;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -57,7 +63,10 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.junit.jupiter.api.Named.named;
 
 /**
+ * Tests for {@link ClientHttpConnector} implementations.
  * @author Arjen Poutsma
+ * @author Brian Clozel
+ * @author Sebastien Deleuze
  */
 class ClientHttpConnectorTests {
 
@@ -172,6 +181,48 @@ class ClientHttpConnectorTests {
 				.verify();
 	}
 
+	@ParameterizedConnectorTest
+	void cookieExpireValueSetAsMaxAge(ClientHttpConnector connector) {
+		ZonedDateTime tomorrow = ZonedDateTime.now(ZoneId.of("UTC")).plusDays(1);
+		String formattedDate = tomorrow.format(DateTimeFormatter.RFC_1123_DATE_TIME);
+
+		prepareResponse(response -> {
+			response.setResponseCode(200);
+			response.addHeader("Set-Cookie", "id=test; Expires= " + formattedDate + ";");
+		});
+		Mono<ClientHttpResponse> futureResponse =
+				connector.connect(HttpMethod.GET, this.server.url("/").uri(), ReactiveHttpOutputMessage::setComplete);
+		StepVerifier.create(futureResponse)
+				.assertNext(response -> {
+							assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+							assertThat(response.getCookies().getFirst("id").getMaxAge()).isCloseTo(Duration.ofDays(1), Duration.ofSeconds(10));
+						}
+				)
+				.verifyComplete();
+	}
+
+	@Test
+	void disableCookieWithHttpComponents() {
+		ClientHttpConnector connector = new HttpComponentsClientHttpConnector(
+				HttpAsyncClientBuilder.create().disableCookieManagement().build()
+		);
+
+		prepareResponse(response -> {
+			response.setResponseCode(200);
+			response.addHeader("Set-Cookie", "id=test;");
+		});
+		Mono<ClientHttpResponse> futureResponse =
+				connector.connect(HttpMethod.GET, this.server.url("/").uri(), ReactiveHttpOutputMessage::setComplete);
+		StepVerifier.create(futureResponse)
+				.assertNext(response -> {
+							assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+							assertThat(response.getCookies()).isEmpty();
+						}
+				)
+				.verifyComplete();
+
+	}
+
 	private Buffer randomBody(int size) {
 		Buffer responseBody = new Buffer();
 		Random rnd = new Random();
@@ -211,7 +262,8 @@ class ClientHttpConnectorTests {
 		return Arrays.asList(
 				named("Reactor Netty", new ReactorClientHttpConnector()),
 				named("Jetty", new JettyClientHttpConnector()),
-				named("HttpComponents", new HttpComponentsClientHttpConnector())
+				named("HttpComponents", new HttpComponentsClientHttpConnector()),
+				named("Jdk", new JdkClientHttpConnector())
 		);
 	}
 

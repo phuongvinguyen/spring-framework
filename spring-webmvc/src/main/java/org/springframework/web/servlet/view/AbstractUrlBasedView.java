@@ -18,20 +18,20 @@ package org.springframework.web.servlet.view;
 
 import java.util.Locale;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.lang.Nullable;
 
 /**
  * Abstract base class for URL-based views. Provides a consistent way of
- * holding the URL that a View wraps, in the form of an "url" bean property.
+ * holding the URL that a View wraps, in the form of a "url" bean property.
  *
  * @author Juergen Hoeller
  * @since 13.12.2003
  */
 public abstract class AbstractUrlBasedView extends AbstractView implements InitializingBean {
 
-	@Nullable
-	private String url;
+	private @Nullable String url;
 
 
 	/**
@@ -60,8 +60,7 @@ public abstract class AbstractUrlBasedView extends AbstractView implements Initi
 	/**
 	 * Return the URL of the resource that this view wraps.
 	 */
-	@Nullable
-	public String getUrl() {
+	public @Nullable String getUrl() {
 		return this.url;
 	}
 
@@ -87,7 +86,7 @@ public abstract class AbstractUrlBasedView extends AbstractView implements Initi
 	 * @param locale the desired Locale that we're looking for
 	 * @return {@code true} if the resource exists (or is assumed to exist);
 	 * {@code false} if we know that it does not exist
-	 * @throws Exception if the resource exists but is invalid (e.g. could not be parsed)
+	 * @throws Exception if the resource exists but is invalid (for example, could not be parsed)
 	 */
 	public boolean checkResource(Locale locale) throws Exception {
 		return true;

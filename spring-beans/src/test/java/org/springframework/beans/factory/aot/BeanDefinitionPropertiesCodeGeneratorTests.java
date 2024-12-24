@@ -29,6 +29,7 @@ import java.util.function.Supplier;
 import javax.lang.model.element.Modifier;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
@@ -58,7 +59,6 @@ import org.springframework.core.test.tools.TestCompiler;
 import org.springframework.javapoet.CodeBlock;
 import org.springframework.javapoet.MethodSpec;
 import org.springframework.javapoet.ParameterizedTypeName;
-import org.springframework.lang.Nullable;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -574,7 +574,7 @@ class BeanDefinitionPropertiesCodeGeneratorTests {
 
 	private void assertHasDeclaredFieldsHint(Class<?> beanType) {
 		assertThat(RuntimeHintsPredicates.reflection()
-				.onType(beanType).withMemberCategory(MemberCategory.DECLARED_FIELDS))
+				.onType(beanType).withMemberCategory(MemberCategory.INVOKE_DECLARED_FIELDS))
 				.accepts(this.generationContext.getRuntimeHints());
 	}
 
@@ -706,15 +706,13 @@ class BeanDefinitionPropertiesCodeGeneratorTests {
 			this.name = name;
 		}
 
-		@Nullable
 		@Override
-		public String getObject() {
+		public @Nullable String getObject() {
 			return getPrefix() + " " + getName();
 		}
 
-		@Nullable
 		@Override
-		public Class<?> getObjectType() {
+		public @Nullable Class<?> getObjectType() {
 			return String.class;
 		}
 

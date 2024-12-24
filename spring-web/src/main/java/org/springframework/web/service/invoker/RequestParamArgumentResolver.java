@@ -16,10 +16,11 @@
 
 package org.springframework.web.service.invoker;
 
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.http.MediaType;
-import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
@@ -64,7 +65,7 @@ public class RequestParamArgumentResolver extends AbstractNamedValueArgumentReso
 
 
 	/**
-	 * Whether to format multiple values (e.g. collection, array) as a single
+	 * Whether to format multiple values (for example, collection, array) as a single
 	 * String value through the configured {@link ConversionService} unless the
 	 * content type is form data, or it is a multipart request.
 	 * <p>By default, this is {@code false} in which case formatting is not applied,
@@ -85,8 +86,7 @@ public class RequestParamArgumentResolver extends AbstractNamedValueArgumentReso
 
 
 	@Override
-	@Nullable
-	protected NamedValueInfo createNamedValueInfo(MethodParameter parameter, HttpRequestValues.Metadata metadata) {
+	protected @Nullable NamedValueInfo createNamedValueInfo(MethodParameter parameter, HttpRequestValues.Metadata metadata) {
 		RequestParam annot = parameter.getParameterAnnotation(RequestParam.class);
 		if (annot == null) {
 			return null;

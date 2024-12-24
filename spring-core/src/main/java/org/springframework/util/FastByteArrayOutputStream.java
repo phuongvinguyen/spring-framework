@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2023 the original author or authors.
+ * Copyright 2002-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A speedy alternative to {@link java.io.ByteArrayOutputStream}. Note that
@@ -98,13 +98,11 @@ public class FastByteArrayOutputStream extends OutputStream {
 		if (this.closed) {
 			throw new IOException("Stream closed");
 		}
-		else {
-			if (this.buffers.peekLast() == null || this.buffers.getLast().length == this.index) {
-				addBuffer(1);
-			}
-			// store the byte
-			this.buffers.getLast()[this.index++] = (byte) datum;
+		if (this.buffers.peekLast() == null || this.buffers.getLast().length == this.index) {
+			addBuffer(1);
 		}
+		// store the byte
+		this.buffers.getLast()[this.index++] = (byte) datum;
 	}
 
 	@Override
@@ -351,8 +349,7 @@ public class FastByteArrayOutputStream extends OutputStream {
 
 		private final Iterator<byte[]> buffersIterator;
 
-		@Nullable
-		private byte[] currentBuffer;
+		private byte @Nullable [] currentBuffer;
 
 		private int currentBufferLength = 0;
 
@@ -384,22 +381,20 @@ public class FastByteArrayOutputStream extends OutputStream {
 				// This stream doesn't have any data in it...
 				return -1;
 			}
+			if (this.nextIndexInCurrentBuffer < this.currentBufferLength) {
+				this.totalBytesRead++;
+				return this.currentBuffer[this.nextIndexInCurrentBuffer++] & 0xFF;
+			}
 			else {
-				if (this.nextIndexInCurrentBuffer < this.currentBufferLength) {
-					this.totalBytesRead++;
-					return this.currentBuffer[this.nextIndexInCurrentBuffer++] & 0xFF;
+				if (this.buffersIterator.hasNext()) {
+					this.currentBuffer = this.buffersIterator.next();
+					updateCurrentBufferLength();
+					this.nextIndexInCurrentBuffer = 0;
 				}
 				else {
-					if (this.buffersIterator.hasNext()) {
-						this.currentBuffer = this.buffersIterator.next();
-						updateCurrentBufferLength();
-						this.nextIndexInCurrentBuffer = 0;
-					}
-					else {
-						this.currentBuffer = null;
-					}
-					return read();
+					this.currentBuffer = null;
 				}
+				return read();
 			}
 		}
 

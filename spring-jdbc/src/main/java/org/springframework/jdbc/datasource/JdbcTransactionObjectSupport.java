@@ -17,9 +17,11 @@
 package org.springframework.jdbc.datasource;
 
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Savepoint;
 
-import org.springframework.lang.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.transaction.NestedTransactionNotSupportedException;
 import org.springframework.transaction.SavepointManager;
@@ -45,11 +47,9 @@ import org.springframework.util.Assert;
  */
 public abstract class JdbcTransactionObjectSupport implements SavepointManager, SmartTransactionObject {
 
-	@Nullable
-	private ConnectionHolder connectionHolder;
+	private @Nullable ConnectionHolder connectionHolder;
 
-	@Nullable
-	private Integer previousIsolationLevel;
+	private @Nullable Integer previousIsolationLevel;
 
 	private boolean readOnly = false;
 
@@ -88,8 +88,7 @@ public abstract class JdbcTransactionObjectSupport implements SavepointManager, 
 	/**
 	 * Return the retained previous isolation level, if any.
 	 */
-	@Nullable
-	public Integer getPreviousIsolationLevel() {
+	public @Nullable Integer getPreviousIsolationLevel() {
 		return this.previousIsolationLevel;
 	}
 
@@ -178,6 +177,9 @@ public abstract class JdbcTransactionObjectSupport implements SavepointManager, 
 		ConnectionHolder conHolder = getConnectionHolderForSavepoint();
 		try {
 			conHolder.getConnection().releaseSavepoint((Savepoint) savepoint);
+		}
+		catch (SQLFeatureNotSupportedException ex) {
+			// typically on Oracle - ignore
 		}
 		catch (Throwable ex) {
 			throw new TransactionSystemException("Could not explicitly release JDBC savepoint", ex);

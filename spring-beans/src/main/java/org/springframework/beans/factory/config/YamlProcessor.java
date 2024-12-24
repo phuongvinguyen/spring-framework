@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -42,7 +43,6 @@ import org.yaml.snakeyaml.representer.Representer;
 
 import org.springframework.core.CollectionFactory;
 import org.springframework.core.io.Resource;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -77,7 +77,7 @@ public abstract class YamlProcessor {
 	 * A map of document matchers allowing callers to selectively use only
 	 * some of the documents in a YAML resource. In YAML documents are
 	 * separated by {@code ---} lines, and each document is converted
-	 * to properties before the match is made. E.g.
+	 * to properties before the match is made. For example,
 	 * <pre class="code">
 	 * environment: dev
 	 * url: https://dev.bar.com

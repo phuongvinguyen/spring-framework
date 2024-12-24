@@ -33,9 +33,9 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.core.io.support.SpringFactoriesLoader;
-import org.springframework.lang.Nullable;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ConcurrentReferenceHashMap;
 import org.springframework.util.StringUtils;
@@ -107,7 +107,7 @@ public final class CachedIntrospectionResults {
 	 * Accept the given ClassLoader as cache-safe, even if its classes would
 	 * not qualify as cache-safe in this CachedIntrospectionResults class.
 	 * <p>This configuration method is only relevant in scenarios where the Spring
-	 * classes reside in a 'common' ClassLoader (e.g. the system ClassLoader)
+	 * classes reside in a 'common' ClassLoader (for example, the system ClassLoader)
 	 * whose lifecycle is not coupled to the application. In such a scenario,
 	 * CachedIntrospectionResults would by default not cache any of the application's
 	 * classes, since they would create a leak in the common ClassLoader.
@@ -290,7 +290,7 @@ public final class CachedIntrospectionResults {
 				currClass = currClass.getSuperclass();
 			}
 
-			// Check for record-style accessors without prefix: e.g. "lastName()"
+			// Check for record-style accessors without prefix: for example, "lastName()"
 			// - accessor method directly referring to instance field of same name
 			// - same convention for component accessors of Java 15 record classes
 			introspectPlainAccessors(beanClass, readMethodNames);
@@ -375,8 +375,7 @@ public final class CachedIntrospectionResults {
 		return this.beanInfo.getBeanDescriptor().getBeanClass();
 	}
 
-	@Nullable
-	PropertyDescriptor getPropertyDescriptor(String name) {
+	@Nullable PropertyDescriptor getPropertyDescriptor(String name) {
 		PropertyDescriptor pd = this.propertyDescriptors.get(name);
 		if (pd == null && StringUtils.hasLength(name)) {
 			// Same lenient fallback checking as in Property...

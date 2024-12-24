@@ -18,8 +18,8 @@ package org.springframework.web.servlet.theme;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.Nullable;
 
-import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 import org.springframework.web.util.WebUtils;
 
@@ -30,7 +30,7 @@ import org.springframework.web.util.WebUtils;
  * application needs user sessions anyway.
  *
  * <p>Custom controllers can override the user's theme by calling
- * {@code setThemeName}, e.g. responding to a theme change request.
+ * {@code setThemeName}, for example, responding to a theme change request.
  *
  * @author Jean-Pierre Pawlak
  * @author Juergen Hoeller

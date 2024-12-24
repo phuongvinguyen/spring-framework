@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.Nullable;
 
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.InitializingBean;
@@ -38,7 +39,6 @@ import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.support.AllEncompassingFormHttpMessageConverter;
-import org.springframework.lang.Nullable;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
@@ -60,6 +60,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.View;
+import org.springframework.web.servlet.function.HandlerFunction;
 import org.springframework.web.servlet.handler.AbstractHandlerMethodExceptionResolver;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.resource.ResourceHttpRequestHandler;
@@ -95,17 +96,13 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 			new DisconnectedClientHelper(DISCONNECTED_CLIENT_LOG_CATEGORY);
 
 
-	@Nullable
-	private List<HandlerMethodArgumentResolver> customArgumentResolvers;
+	private @Nullable List<HandlerMethodArgumentResolver> customArgumentResolvers;
 
-	@Nullable
-	private HandlerMethodArgumentResolverComposite argumentResolvers;
+	private @Nullable HandlerMethodArgumentResolverComposite argumentResolvers;
 
-	@Nullable
-	private List<HandlerMethodReturnValueHandler> customReturnValueHandlers;
+	private @Nullable List<HandlerMethodReturnValueHandler> customReturnValueHandlers;
 
-	@Nullable
-	private HandlerMethodReturnValueHandlerComposite returnValueHandlers;
+	private @Nullable HandlerMethodReturnValueHandlerComposite returnValueHandlers;
 
 	private final List<HttpMessageConverter<?>> messageConverters = new ArrayList<>();
 
@@ -115,8 +112,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 
 	private final List<ErrorResponse.Interceptor> errorResponseInterceptors = new ArrayList<>();
 
-	@Nullable
-	private ApplicationContext applicationContext;
+	private @Nullable ApplicationContext applicationContext;
 
 	private final Map<Class<?>, ExceptionHandlerMethodResolver> exceptionHandlerCache =
 			new ConcurrentHashMap<>(64);
@@ -137,8 +133,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 	/**
 	 * Return the custom argument resolvers, or {@code null}.
 	 */
-	@Nullable
-	public List<HandlerMethodArgumentResolver> getCustomArgumentResolvers() {
+	public @Nullable List<HandlerMethodArgumentResolver> getCustomArgumentResolvers() {
 		return this.customArgumentResolvers;
 	}
 
@@ -160,8 +155,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 	 * Return the configured argument resolvers, or possibly {@code null} if
 	 * not initialized yet via {@link #afterPropertiesSet()}.
 	 */
-	@Nullable
-	public HandlerMethodArgumentResolverComposite getArgumentResolvers() {
+	public @Nullable HandlerMethodArgumentResolverComposite getArgumentResolvers() {
 		return this.argumentResolvers;
 	}
 
@@ -177,8 +171,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 	/**
 	 * Return the custom return value handlers, or {@code null}.
 	 */
-	@Nullable
-	public List<HandlerMethodReturnValueHandler> getCustomReturnValueHandlers() {
+	public @Nullable List<HandlerMethodReturnValueHandler> getCustomReturnValueHandlers() {
 		return this.customReturnValueHandlers;
 	}
 
@@ -200,8 +193,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 	 * Return the configured handlers, or possibly {@code null} if not
 	 * initialized yet via {@link #afterPropertiesSet()}.
 	 */
-	@Nullable
-	public HandlerMethodReturnValueHandlerComposite getReturnValueHandlers() {
+	public @Nullable HandlerMethodReturnValueHandlerComposite getReturnValueHandlers() {
 		return this.returnValueHandlers;
 	}
 
@@ -250,7 +242,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 
 	/**
 	 * Configure a list of {@link ErrorResponse.Interceptor}'s to apply when
-	 * rendering an RFC 7807 {@link org.springframework.http.ProblemDetail}
+	 * rendering an RFC 9457 {@link org.springframework.http.ProblemDetail}
 	 * error response.
 	 * @param interceptors the handlers to use
 	 * @since 6.2
@@ -274,8 +266,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 		this.applicationContext = applicationContext;
 	}
 
-	@Nullable
-	public ApplicationContext getApplicationContext() {
+	public @Nullable ApplicationContext getApplicationContext() {
 		return this.applicationContext;
 	}
 
@@ -419,16 +410,20 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 
 	@Override
 	protected boolean shouldApplyTo(HttpServletRequest request, @Nullable Object handler) {
-		return (handler instanceof ResourceHttpRequestHandler ?
-				hasGlobalExceptionHandlers() : super.shouldApplyTo(request, handler));
+		if ((handler instanceof ResourceHttpRequestHandler || handler instanceof HandlerFunction) &&
+				hasGlobalExceptionHandlers() && !hasHandlerMappings()) {
+			return true;  // apply to ResourceHttpRequestHandler and HandlerFunction by default
+		}
+		else {
+			return super.shouldApplyTo(request, handler);
+		}
 	}
 
 	/**
 	 * Find an {@code @ExceptionHandler} method and invoke it to handle the raised exception.
 	 */
 	@Override
-	@Nullable
-	protected ModelAndView doResolveHandlerMethodException(HttpServletRequest request,
+	protected @Nullable ModelAndView doResolveHandlerMethodException(HttpServletRequest request,
 			HttpServletResponse response, @Nullable HandlerMethod handlerMethod, Exception exception) {
 
 		ServletWebRequest webRequest = new ServletWebRequest(request, response);
@@ -469,7 +464,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 				return new ModelAndView();
 			}
 			// Any other than the original exception (or a cause) is unintended here,
-			// probably an accident (e.g. failed assertion or the like).
+			// probably an accident (for example, failed assertion or the like).
 			if (!exceptions.contains(invocationEx) && logger.isWarnEnabled()) {
 				logger.warn("Failure in @ExceptionHandler " + exceptionHandlerMethod, invocationEx);
 			}
@@ -507,8 +502,7 @@ public class ExceptionHandlerExceptionResolver extends AbstractHandlerMethodExce
 	 * @param webRequest the original web request that resulted in a handler error
 	 * @return a method to handle the exception, or {@code null} if none
 	 */
-	@Nullable
-	protected ServletInvocableHandlerMethod getExceptionHandlerMethod(
+	protected @Nullable ServletInvocableHandlerMethod getExceptionHandlerMethod(
 			@Nullable HandlerMethod handlerMethod, Exception exception, ServletWebRequest webRequest) {
 
 		List<MediaType> acceptedMediaTypes = List.of(MediaType.ALL);
